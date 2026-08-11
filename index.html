@@ -2536,6 +2536,68 @@
       }
     }
 
+
+    /* TEST v3.1: direct GitHub desktop navigation */
+    @media (min-width: 1101px) {
+      .quick-nav {
+        display: block;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        margin: 8px 0 18px;
+        padding: 3px 0;
+        background: rgba(250,250,250,0.94);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+      }
+
+      body.dark-mode .quick-nav {
+        background: rgba(17,21,26,0.94);
+      }
+    }
+
+
+    .investor-info-button {
+      flex: 0 0 auto;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid #bbb;
+      background: #fff;
+      color: #222;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .investor-info-box {
+      display: none;
+      margin: 10px 0 14px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #eef1f4;
+      border: 1px solid #d9dee4;
+      color: #4f5964;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .investor-info-box.open { display: block; }
+    .investor-year-summary { margin-top: 14px; }
+
+    body.dark-mode .investor-info-button {
+      background: #1b222a;
+      color: #e8edf2;
+      border-color: #46515e;
+    }
+
+    body.dark-mode .investor-info-box {
+      background: #222a33;
+      border-color: #303945;
+      color: #aeb7c2;
+    }
+
   </style>
 </head>
 
@@ -2566,27 +2628,44 @@
 
   <script>
   (function setupFFAccessGate() {
-    const ACCESS_CODE = "2020";
-    const STORAGE_KEY = "ff-championship-access-v1";
+    const STORAGE_KEY = "ff-championship-access-code-v2";
+    let currentAccessCode = null;
+    let accessConfigReady = false;
 
-    function unlockDashboard() {
-      try {
-        localStorage.setItem(STORAGE_KEY, "granted");
-      } catch (e) {}
-
-      document.body.classList.remove("ff-auth-locked");
-
-      // Notify existing iframe/auto-height integrations that layout changed.
+    function notifyLayoutChanged() {
       window.dispatchEvent(new Event("resize"));
       setTimeout(() => window.dispatchEvent(new Event("resize")), 100);
       setTimeout(() => window.dispatchEvent(new Event("resize")), 400);
     }
 
-    try {
-      if (localStorage.getItem(STORAGE_KEY) === "granted") {
-        unlockDashboard();
+    function unlockDashboard(rememberCode = true) {
+      if (rememberCode && currentAccessCode) {
+        try {
+          localStorage.setItem(STORAGE_KEY, currentAccessCode);
+        } catch (e) {}
       }
-    } catch (e) {}
+
+      document.body.classList.remove("ff-auth-locked");
+      notifyLayoutChanged();
+    }
+
+    window.configureFFAccess = function(code) {
+      currentAccessCode = String(code || "").trim();
+      accessConfigReady = true;
+
+      if (!currentAccessCode) {
+        try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+        unlockDashboard(false);
+        return;
+      }
+
+      let storedCode = null;
+      try { storedCode = localStorage.getItem(STORAGE_KEY); } catch (e) {}
+
+      if (storedCode === currentAccessCode) {
+        unlockDashboard(false);
+      }
+    };
 
     window.addEventListener("DOMContentLoaded", function() {
       const form = document.getElementById("ffAccessForm");
@@ -2598,9 +2677,20 @@
       form.addEventListener("submit", function(event) {
         event.preventDefault();
 
-        if (String(input.value || "").trim() === ACCESS_CODE) {
+        if (!accessConfigReady) {
+          error.textContent = "Henter adgangsinnstillinger …";
+          return;
+        }
+
+        if (!currentAccessCode) {
           error.textContent = "";
-          unlockDashboard();
+          unlockDashboard(false);
+          return;
+        }
+
+        if (String(input.value || "").trim() === currentAccessCode) {
+          error.textContent = "";
+          unlockDashboard(true);
         } else {
           error.textContent = "Feil kode.";
           input.value = "";
@@ -2881,6 +2971,37 @@ function detectSimulatorStatus(dashboardRaw) {
   return "OPEN";
 }
 
+
+
+function detectDashboardControlValue(dashboardRaw, controlName) {
+  const wanted = String(controlName || "").trim().toLowerCase();
+  if (!wanted || !Array.isArray(dashboardRaw)) return "";
+
+  for (const row of dashboardRaw) {
+    const keys = Object.keys(row || {});
+
+    for (let i = 0; i < keys.length; i++) {
+      const value = String(row[keys[i]] ?? "").trim();
+
+      if (value.toLowerCase() === wanted) {
+        const nextKey = keys[i + 1];
+        return nextKey ? String(row[nextKey] ?? "").trim() : "";
+      }
+    }
+
+    for (const key of keys) {
+      if (String(key).trim().toLowerCase() === wanted) {
+        return String(row[key] ?? "").trim();
+      }
+    }
+  }
+
+  return "";
+}
+
+function detectAccessCode(dashboardRaw) {
+  return detectDashboardControlValue(dashboardRaw, "access_code");
+}
 
 function isDarkMode() {
   return document.body.classList.contains("dark-mode");
@@ -8672,6 +8793,10 @@ function buildSeasonData(
       detectSimulatorStatus(
         dashboardRaw
       ),
+    accessCode:
+      detectAccessCode(
+        dashboardRaw
+      ),
     dashboardRaw,
     historyRaw,
     participants,
@@ -10269,7 +10394,102 @@ function investorPeriodSetup(period) {
   };
 }
 
+function investorSingleSeasonResult(season, person, startingCapital = 100000) {
+  if (!season || !season.result || !season.result.themeResults) return null;
+
+  const themes = season.result.themeResults.filter(
+    row => investorThemeIncluded(row.theme)
+  );
+
+  if (!themes.length || !season.participants.includes(person)) return null;
+
+  const allocation = startingCapital / themes.length;
+
+  const details = themes.map(theme => {
+    const prediction =
+      theme.personResults[person]
+        ? theme.personResults[person].prediction
+        : 0;
+
+    const direction = investorDirection(prediction);
+    const actualReturn = Number(theme.actualChange) || 0;
+    const positionReturn = direction * actualReturn;
+    const contribution = allocation * positionReturn;
+    const endValue = allocation + contribution;
+
+    return {
+      year: season.year,
+      theme: theme.theme,
+      prediction,
+      direction,
+      actualReturn,
+      positionReturn,
+      contribution,
+      endValue
+    };
+  });
+
+  const endValue = details.reduce((sum, item) => sum + item.endValue, 0);
+
+  return {
+    startValue: startingCapital,
+    endValue,
+    totalReturn: startingCapital ? endValue / startingCapital - 1 : 0,
+    details
+  };
+}
+
+function investorAllTimeResults() {
+  const years = Object.keys(allSeasonData)
+    .map(Number)
+    .filter(year => year <= activeSeasonYear)
+    .sort((a, b) => a - b);
+
+  if (!years.length) return null;
+
+  const rows = currentParticipants.map(person => {
+    let capital = 100000;
+    const yearly = [];
+    const details = [];
+
+    years.forEach(year => {
+      const season = allSeasonData[year];
+      const result = investorSingleSeasonResult(season, person, capital);
+      if (!result) return;
+
+      yearly.push({
+        year,
+        startValue: capital,
+        annualReturn: result.totalReturn,
+        endValue: result.endValue
+      });
+
+      details.push(...result.details);
+      capital = result.endValue;
+    });
+
+    return {
+      person,
+      endValue: capital,
+      totalReturn: capital / 100000 - 1,
+      details,
+      yearly
+    };
+  }).sort((a, b) => b.endValue - a.endValue);
+
+  return {
+    label: `All-time · FF${years[0]}–FF${years[years.length - 1]}`,
+    rows,
+    years,
+    allTime: true
+  };
+}
+
 function investorResults(period) {
+  if (period === "all") {
+    return investorAllTimeResults();
+  }
+
   const setup = investorPeriodSetup(period);
   if (!setup || !currentCompetitionRows || !currentParticipants) return null;
 
@@ -10318,7 +10538,8 @@ function investorResults(period) {
       person,
       endValue,
       totalReturn: endValue / 100000 - 1,
-      details
+      details,
+      yearly: []
     };
   }).sort((a, b) => b.endValue - a.endValue);
 
@@ -10326,7 +10547,8 @@ function investorResults(period) {
     label: setup.label,
     allocation,
     themes,
-    rows
+    rows,
+    allTime: false
   };
 }
 
@@ -10365,7 +10587,8 @@ function renderInvestorSection() {
 
   const periodTabs = [
     { key: "month", label: "1 mnd" },
-    { key: "year", label: `FF${activeSeasonYear}` }
+    { key: "year", label: `FF${activeSeasonYear}` },
+    { key: "all", label: "All-time" }
   ];
 
   container.innerHTML = `
@@ -10381,6 +10604,13 @@ function renderInvestorSection() {
             ${tab.label}
           </button>
         `).join("")}
+        <button type="button" class="investor-info-button" id="investorInfoButton" aria-label="Slik beregnes Investor">ⓘ</button>
+      </div>
+
+      <div class="investor-info-box" id="investorInfoBox">
+        <strong>Slik beregnes Investor</strong><br>
+        100 000 kr fordeles likt på årets investerbare temaer. Positivt estimat = LONG og negativt estimat = SHORT.
+        I All-time tas sluttverdien fra ett FF-år med videre til neste år og fordeles likt på nytt. Dermed blir avkastningen akkumulert gjennom FF-historikken.
       </div>
 
       <div class="investor-note">
@@ -10430,7 +10660,7 @@ function renderInvestorSection() {
         <div class="investor-detail">
           <div class="investor-detail-card">
             <div class="investor-detail-title">🚀 Største positive bidrag</div>
-            <div class="investor-detail-main">${best ? best.theme : "–"}</div>
+            <div class="investor-detail-main">${best ? (best.year ? `FF${best.year} · ` : "") + best.theme : "–"}</div>
             <div class="investor-detail-text">
               ${best ? investorPositionHtml(best.direction) + " · " + investorPercent(best.positionReturn) + " · " + investorCurrency(best.contribution) : "–"}
             </div>
@@ -10438,42 +10668,74 @@ function renderInvestorSection() {
 
           <div class="investor-detail-card">
             <div class="investor-detail-title">🧨 Største motvind</div>
-            <div class="investor-detail-main">${worst ? worst.theme : "–"}</div>
+            <div class="investor-detail-main">${worst ? (worst.year ? `FF${worst.year} · ` : "") + worst.theme : "–"}</div>
             <div class="investor-detail-text">
               ${worst ? investorPositionHtml(worst.direction) + " · " + investorPercent(worst.positionReturn) + " · " + investorCurrency(worst.contribution) : "–"}
             </div>
           </div>
         </div>
 
-        <h3>${selected.person} · ${result.label}</h3>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Tema</th>
-                <th>Posisjon</th>
-                <th>Faktisk utvikling</th>
-                <th>Posisjonsavkastning</th>
-                <th>Bidrag</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${selected.details.map(item => `
+        ${result.allTime ? `
+          <div class="table-wrap investor-year-summary">
+            <table>
+              <thead>
                 <tr>
-                  <td>${item.theme}</td>
-                  <td>${investorPositionHtml(item.direction)}</td>
-                  <td>${investorPercent(item.actualReturn)}</td>
-                  <td>${investorPercent(item.positionReturn)}</td>
-                  <td>${investorCurrency(item.contribution)}</td>
+                  <th>År</th>
+                  <th>Startkapital</th>
+                  <th>Årsavkastning</th>
+                  <th>Sluttverdi</th>
                 </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                ${selected.yearly.map(item => `
+                  <tr>
+                    <td>FF${item.year}</td>
+                    <td>${investorCurrency(item.startValue)}</td>
+                    <td>${investorPercent(item.annualReturn)}</td>
+                    <td>${investorCurrency(item.endValue)}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        ` : `
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tema</th>
+                  <th>Posisjon</th>
+                  <th>Faktisk utvikling</th>
+                  <th>Posisjonsavkastning</th>
+                  <th>Bidrag</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${selected.details.map(item => `
+                  <tr>
+                    <td>${item.theme}</td>
+                    <td>${investorPositionHtml(item.direction)}</td>
+                    <td>${investorPercent(item.actualReturn)}</td>
+                    <td>${investorPercent(item.positionReturn)}</td>
+                    <td>${investorCurrency(item.contribution)}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        `}
       </div>
     </div>
   `;
+
+  const infoButton = container.querySelector("#investorInfoButton");
+  const infoBox = container.querySelector("#investorInfoBox");
+
+  if (infoButton && infoBox) {
+    infoButton.addEventListener("click", () => {
+      infoBox.classList.toggle("open");
+    });
+  }
 
   container.querySelectorAll("[data-investor-period]").forEach(button => {
     button.addEventListener("click", () => {
@@ -10652,6 +10914,12 @@ async function loadAllSeasonData() {
     throw new Error(
       "FF2026 kunne ikke lastes. " +
       errors.join(" · ")
+    );
+  }
+
+  if (typeof window.configureFFAccess === "function") {
+    window.configureFFAccess(
+      allSeasonData[2026].accessCode
     );
   }
 
