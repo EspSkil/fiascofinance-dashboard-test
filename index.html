@@ -153,7 +153,8 @@
     #themeSection,
     #historySection,
     #simulatorSection,
-    #estimatesSection {
+    #estimatesSection,
+    #investorSection {
       scroll-margin-top: 72px;
     }
 
@@ -2328,6 +2329,213 @@
       }
     }
 
+
+    /* TEST v3: Investor */
+    .investor-panel {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 18px;
+      margin-top: 16px;
+    }
+
+    .investor-tabs,
+    .investor-person-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 2px;
+    }
+
+    .investor-tabs::-webkit-scrollbar,
+    .investor-person-tabs::-webkit-scrollbar { display: none; }
+
+    .investor-tab,
+    .investor-person-tab {
+      flex: 0 0 auto;
+      border: 1px solid #bbb;
+      background: #fff;
+      color: #222;
+      border-radius: 999px;
+      padding: 8px 13px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .investor-tab.active,
+    .investor-person-tab.active {
+      background: #222;
+      color: #fff;
+      border-color: #222;
+    }
+
+    .investor-note {
+      color: #666;
+      font-size: 13px;
+      line-height: 1.45;
+      margin: 12px 0 14px;
+    }
+
+    .investor-leaderboard {
+      display: grid;
+      gap: 9px;
+    }
+
+    .investor-row {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 11px;
+      background: #f8f8f8;
+    }
+
+    .investor-row.rank-1 {
+      border-color: #c8ad62;
+      background: #fbf8ee;
+    }
+
+    .investor-person {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .investor-person img,
+    .investor-person-tab img {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex: 0 0 34px;
+      border: 1px solid #ddd;
+    }
+
+    .investor-person-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding-left: 7px;
+    }
+
+    .investor-person-tab img {
+      width: 24px;
+      height: 24px;
+      flex-basis: 24px;
+    }
+
+    .investor-name { font-weight: 800; }
+
+    .investor-value {
+      text-align: right;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .investor-return {
+      color: #666;
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .investor-detail {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .investor-detail-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 11px;
+      padding: 13px;
+      background: #f8f8f8;
+    }
+
+    .investor-detail-title {
+      font-size: 12px;
+      color: #666;
+      font-weight: 700;
+      margin-bottom: 7px;
+    }
+
+    .investor-detail-main {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .investor-detail-text {
+      margin-top: 4px;
+      color: #666;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .investor-breakdown {
+      margin-top: 18px;
+    }
+
+    .investor-breakdown h3 { margin-bottom: 10px; }
+
+    .investor-long { color: #16820d; font-weight: 800; }
+    .investor-short { color: #b00020; font-weight: 800; }
+    .investor-flat { color: #666; font-weight: 800; }
+
+    body.dark-mode .investor-panel,
+    body.dark-mode .investor-row,
+    body.dark-mode .investor-detail-card {
+      background: #181e25;
+      border-color: #303945;
+    }
+
+    body.dark-mode .investor-row.rank-1 {
+      background: #262719;
+      border-color: #8f762f;
+    }
+
+    body.dark-mode .investor-note,
+    body.dark-mode .investor-return,
+    body.dark-mode .investor-detail-title,
+    body.dark-mode .investor-detail-text {
+      color: #aeb7c2;
+    }
+
+    body.dark-mode .investor-tab,
+    body.dark-mode .investor-person-tab {
+      background: #1b222a;
+      color: #e8edf2;
+      border-color: #46515e;
+    }
+
+    body.dark-mode .investor-tab.active,
+    body.dark-mode .investor-person-tab.active {
+      background: #e8edf2;
+      color: #11151a;
+      border-color: #e8edf2;
+    }
+
+    @media (max-width: 800px) {
+      .investor-panel { padding: 13px; }
+      .investor-detail { grid-template-columns: 1fr; }
+      .investor-row {
+        grid-template-columns: 34px minmax(0, 1fr) auto;
+        padding: 10px;
+      }
+      .investor-person img {
+        width: 30px;
+        height: 30px;
+        flex-basis: 30px;
+      }
+    }
+
   </style>
 </head>
 
@@ -2445,6 +2653,7 @@
       <a href="#simulatorSection">🔮 Hva hvis?</a>
       <a href="#participantSection">👤 Deltaker</a>
       <a href="#estimatesSection">📋 Estimat</a>
+      <a href="#investorSection">💰 Investor</a>
     </div>
   </nav>
 
@@ -2456,6 +2665,7 @@
   <div id="historySection"></div>
   <div id="simulatorSection"></div>
   <div id="estimatesSection"></div>
+  <div id="investorSection"></div>
   <div id="participantSection"></div>
   <div id="historicalSection"></div>
   <div id="controlSection"></div>
@@ -10000,6 +10210,287 @@ function renderMonthlyReport() {
 
 
 
+
+// ------------------------------------------------------------
+// TEST v3: Investor
+// 100 000 kr equally distributed across all themes except Styringsrente.
+// Positive prediction = LONG, negative prediction = SHORT, 0 = flat.
+// No FF weighting, leverage, costs, dividends or market frictions.
+// ------------------------------------------------------------
+
+let activeInvestorPeriod = "year";
+let selectedInvestorParticipant = null;
+
+function investorThemeIncluded(themeName) {
+  const t = String(themeName || "").trim().toLowerCase();
+  return !t.includes("styringsrente");
+}
+
+function investorDirection(prediction) {
+  const n = Number(prediction);
+  if (!Number.isFinite(n) || Math.abs(n) < 1e-12) return 0;
+  return n > 0 ? 1 : -1;
+}
+
+function investorCurrency(value) {
+  return new Intl.NumberFormat("nb-NO", {
+    style: "currency",
+    currency: "NOK",
+    maximumFractionDigits: 0
+  }).format(value);
+}
+
+function investorPercent(value, decimals = 2) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "–";
+  const pct = n * 100;
+  const sign = pct > 0 ? "+" : "";
+  return sign + pct.toFixed(decimals).replace(".", ",") + "%";
+}
+
+function investorPositionHtml(direction) {
+  if (direction > 0) return '<span class="investor-long">🟢 LONG</span>';
+  if (direction < 0) return '<span class="investor-short">🔴 SHORT</span>';
+  return '<span class="investor-flat">⚪ FLAT</span>';
+}
+
+function investorPeriodSetup(period) {
+  if (period === "month") {
+    const baseline = monthlyBaselineRow(currentHistoryRows);
+    return baseline
+      ? { startRow: baseline, endRow: currentLatestRow, label: "1 mnd" }
+      : null;
+  }
+
+  return {
+    startRow: currentStartRow,
+    endRow: currentLatestRow,
+    label: `FF${activeSeasonYear}`
+  };
+}
+
+function investorResults(period) {
+  const setup = investorPeriodSetup(period);
+  if (!setup || !currentCompetitionRows || !currentParticipants) return null;
+
+  const periodResult = calculateCompetition(
+    currentCompetitionRows,
+    currentParticipants,
+    setup.startRow,
+    setup.endRow
+  );
+
+  const themes = periodResult.themeResults.filter(
+    row => investorThemeIncluded(row.theme)
+  );
+
+  if (!themes.length) return null;
+
+  const allocation = 100000 / themes.length;
+
+  const rows = currentParticipants.map(person => {
+    const details = themes.map(theme => {
+      const prediction =
+        theme.personResults[person]
+          ? theme.personResults[person].prediction
+          : 0;
+
+      const direction = investorDirection(prediction);
+      const actualReturn = Number(theme.actualChange) || 0;
+      const positionReturn = direction * actualReturn;
+      const contribution = allocation * positionReturn;
+      const endValue = allocation + contribution;
+
+      return {
+        theme: theme.theme,
+        prediction,
+        direction,
+        actualReturn,
+        positionReturn,
+        contribution,
+        endValue
+      };
+    });
+
+    const endValue = details.reduce((sum, item) => sum + item.endValue, 0);
+
+    return {
+      person,
+      endValue,
+      totalReturn: endValue / 100000 - 1,
+      details
+    };
+  }).sort((a, b) => b.endValue - a.endValue);
+
+  return {
+    label: setup.label,
+    allocation,
+    themes,
+    rows
+  };
+}
+
+function renderInvestorSection() {
+  const container = document.getElementById("investorSection");
+  if (!container) return;
+
+  const result = investorResults(activeInvestorPeriod);
+
+  if (!result) {
+    container.innerHTML = `
+      <h2>💰 Investor</h2>
+      <div class="investor-panel">
+        <p class="muted">Ikke nok data til å beregne Investor ennå.</p>
+      </div>
+    `;
+    return;
+  }
+
+  if (
+    !selectedInvestorParticipant ||
+    !result.rows.some(row => row.person === selectedInvestorParticipant)
+  ) {
+    selectedInvestorParticipant = result.rows[0].person;
+  }
+
+  const selected =
+    result.rows.find(row => row.person === selectedInvestorParticipant) ||
+    result.rows[0];
+
+  const best =
+    selected.details.slice().sort((a, b) => b.contribution - a.contribution)[0];
+
+  const worst =
+    selected.details.slice().sort((a, b) => a.contribution - b.contribution)[0];
+
+  const periodTabs = [
+    { key: "month", label: "1 mnd" },
+    { key: "year", label: `FF${activeSeasonYear}` }
+  ];
+
+  container.innerHTML = `
+    <h2>💰 Investor</h2>
+
+    <div class="investor-panel">
+      <div class="investor-tabs">
+        ${periodTabs.map(tab => `
+          <button
+            type="button"
+            class="investor-tab ${activeInvestorPeriod === tab.key ? "active" : ""}"
+            data-investor-period="${tab.key}">
+            ${tab.label}
+          </button>
+        `).join("")}
+      </div>
+
+      <div class="investor-note">
+        Hypotetisk og uhøytidelig: 100 000 kr fordeles likt på alle temaer unntatt Styringsrente.
+        Positivt estimat = LONG, negativt estimat = SHORT. Estimatets størrelse påvirker ikke vekten.
+        Ingen gearing, kostnader, utbytte eller andre markedsfriksjoner.
+      </div>
+
+      <div class="investor-leaderboard">
+        ${result.rows.map((row, index) => `
+          <div class="investor-row ${index === 0 ? "rank-1" : ""}">
+            <div>${index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "#" + (index + 1)}</div>
+
+            <div class="investor-person">
+              <img
+                src="${participantImagePath(row.person)}"
+                alt="${row.person}"
+                onerror="this.style.display='none';">
+              <div>
+                <div class="investor-name">${row.person}</div>
+                <div class="investor-return">${investorPercent(row.totalReturn)}</div>
+              </div>
+            </div>
+
+            <div class="investor-value">${investorCurrency(row.endValue)}</div>
+          </div>
+        `).join("")}
+      </div>
+
+      <div class="investor-breakdown">
+        <h3>Se deltaker</h3>
+        <div class="investor-person-tabs">
+          ${result.rows.map(row => `
+            <button
+              type="button"
+              class="investor-person-tab ${row.person === selected.person ? "active" : ""}"
+              data-investor-person="${row.person}">
+              <img
+                src="${participantImagePath(row.person)}"
+                alt=""
+                onerror="this.style.display='none';">
+              ${row.person}
+            </button>
+          `).join("")}
+        </div>
+
+        <div class="investor-detail">
+          <div class="investor-detail-card">
+            <div class="investor-detail-title">🚀 Største positive bidrag</div>
+            <div class="investor-detail-main">${best ? best.theme : "–"}</div>
+            <div class="investor-detail-text">
+              ${best ? investorPositionHtml(best.direction) + " · " + investorPercent(best.positionReturn) + " · " + investorCurrency(best.contribution) : "–"}
+            </div>
+          </div>
+
+          <div class="investor-detail-card">
+            <div class="investor-detail-title">🧨 Største motvind</div>
+            <div class="investor-detail-main">${worst ? worst.theme : "–"}</div>
+            <div class="investor-detail-text">
+              ${worst ? investorPositionHtml(worst.direction) + " · " + investorPercent(worst.positionReturn) + " · " + investorCurrency(worst.contribution) : "–"}
+            </div>
+          </div>
+        </div>
+
+        <h3>${selected.person} · ${result.label}</h3>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tema</th>
+                <th>Posisjon</th>
+                <th>Faktisk utvikling</th>
+                <th>Posisjonsavkastning</th>
+                <th>Bidrag</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${selected.details.map(item => `
+                <tr>
+                  <td>${item.theme}</td>
+                  <td>${investorPositionHtml(item.direction)}</td>
+                  <td>${investorPercent(item.actualReturn)}</td>
+                  <td>${investorPercent(item.positionReturn)}</td>
+                  <td>${investorCurrency(item.contribution)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  container.querySelectorAll("[data-investor-period]").forEach(button => {
+    button.addEventListener("click", () => {
+      activeInvestorPeriod = button.dataset.investorPeriod;
+      renderInvestorSection();
+    });
+  });
+
+  container.querySelectorAll("[data-investor-person]").forEach(button => {
+    button.addEventListener("click", () => {
+      selectedInvestorParticipant = button.dataset.investorPerson;
+      renderInvestorSection();
+    });
+  });
+}
+
+
 function activateSeason(year) {
 
   const season =
@@ -10012,6 +10503,8 @@ function activateSeason(year) {
   stopThemeTrendAnimation();
 
   activeSeasonYear = year;
+  activeInvestorPeriod = "year";
+  selectedInvestorParticipant = null;
 
   currentParticipants =
     season.participants;
@@ -10077,6 +10570,7 @@ function activateSeason(year) {
   createHistorySection();
   createSimulatorSection();
   showEstimates();
+  renderInvestorSection();
   renderParticipantProfile();
   renderHistoricalSection();
 
@@ -10257,7 +10751,7 @@ async function loadData() {
 
 // v7.7: compact back-to-top buttons on major sections
 (function setupSectionTopButtons(){
-  const ids=["leaderboardSection","monthSection","chartSection","themeSection","themeTrendSection","themePodiumSection","historySection","simulatorSection","estimatesSection","participantSection","historicalSection"];
+  const ids=["leaderboardSection","monthSection","chartSection","themeSection","themeTrendSection","themePodiumSection","historySection","simulatorSection","estimatesSection","investorSection","participantSection","historicalSection"];
 
   function goTop(){
     if(typeof window.ffScrollDashboardTop==="function"){
@@ -10316,7 +10810,8 @@ async function loadData() {
     historySection: "Race",
     simulatorSection: "Hva hvis?",
     participantSection: "Deltaker",
-    estimatesSection: "Estimat"
+    estimatesSection: "Estimat",
+    investorSection: "Investor"
   };
 
   let externalNavigationEnabled = false;
