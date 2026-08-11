@@ -2299,6 +2299,35 @@
       }
     }
 
+
+    /* TEST v2.1: forward-looking lead pressure box */
+    .month-lead-outlook {
+      margin-top: 10px;
+      padding: 14px 16px;
+      border: 1px solid #e2e2e2;
+      background: #f7f7f7;
+      border-radius: 10px;
+      line-height: 1.5;
+    }
+
+    .month-lead-outlook strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    body.dark-mode .month-lead-outlook {
+      background: #222a33;
+      border-color: #303945;
+    }
+
+    @media (max-width: 800px) {
+      .month-lead-outlook {
+        margin-top: 9px;
+        padding: 12px 13px;
+        font-size: 14px;
+      }
+    }
+
   </style>
 </head>
 
@@ -9431,6 +9460,175 @@ function monthlyThemeChanges(
 }
 
 
+
+function leadOutlookAnalysis() {
+  if (
+    !currentOfficialResult ||
+    !currentOfficialResult.leaderboard ||
+    currentOfficialResult.leaderboard.length < 2
+  ) {
+    return null;
+  }
+
+  const leader =
+    currentOfficialResult.leaderboard[0];
+
+  const challenger =
+    currentOfficialResult.leaderboard[1];
+
+  const currentGap =
+    challenger.score -
+    leader.score;
+
+  const results = [];
+
+  currentOfficialResult.themeResults.forEach(themeResult => {
+    const theme = themeResult.theme;
+    const currentValue = themeResult.actualChange;
+
+    // Probe size is deliberately modest and symmetric.
+    // For percentage-return themes we test ±5 percentage points.
+    // For policy-rate-like themes we test ±0.25 percentage points.
+    const normalizedTheme =
+      normalizeText(theme);
+
+    const isRateTheme =
+      normalizedTheme.includes("styringsrente") ||
+      normalizedTheme.includes("rente");
+
+    const probe =
+      isRateTheme
+        ? 0.0025
+        : 0.05;
+
+    [
+      { direction: "up", delta: probe },
+      { direction: "down", delta: -probe }
+    ].forEach(test => {
+      const simulatedLatest = {
+        ...currentLatestRow,
+        [theme]:
+          currentValue +
+          test.delta
+      };
+
+      const simulated =
+        calculateCompetition(
+          currentCompetitionRows,
+          currentParticipants,
+          currentStartRow,
+          simulatedLatest
+        );
+
+      const simMap =
+        Object.fromEntries(
+          simulated.leaderboard.map(row => [
+            row.person,
+            row
+          ])
+        );
+
+      if (
+        !simMap[leader.person] ||
+        !simMap[challenger.person]
+      ) {
+        return;
+      }
+
+      const simulatedGap =
+        simMap[challenger.person].score -
+        simMap[leader.person].score;
+
+      results.push({
+        theme,
+        direction: test.direction,
+        improvement:
+          currentGap -
+          simulatedGap,
+        simulatedGap
+      });
+    });
+  });
+
+  const favorable =
+    results
+      .filter(row => row.improvement > 0.000001)
+      .sort(
+        (a, b) =>
+          b.improvement -
+          a.improvement
+      );
+
+  return {
+    leader: leader.person,
+    challenger: challenger.person,
+    currentGap,
+    favorable
+  };
+}
+
+
+function renderLeadOutlookText() {
+  const analysis =
+    leadOutlookAnalysis();
+
+  if (!analysis) {
+    return "Det er ikke nok data til å vurdere hvilke temaer som kan endre kampen om ledelsen.";
+  }
+
+  const top = [];
+  const usedThemes = new Set();
+
+  for (const item of analysis.favorable) {
+    if (usedThemes.has(item.theme)) {
+      continue;
+    }
+
+    usedThemes.add(item.theme);
+    top.push(item);
+
+    if (top.length >= 2) {
+      break;
+    }
+  }
+
+  if (!top.length) {
+    return `${analysis.challenger} har akkurat nå ingen tydelig enkeltretning i ett tema som raskt reduserer gapet til ${analysis.leader}. Flere temaer må trolig bevege seg samtidig for å endre ledelsen.`;
+  }
+
+  const directionText = item => {
+    const themeLower =
+      normalizeText(item.theme);
+
+    if (themeLower.includes("olje")) {
+      return item.direction === "up"
+        ? "oljeprisen stiger"
+        : "oljeprisen faller";
+    }
+
+    if (
+      themeLower.includes("styringsrente") ||
+      themeLower.includes("rente")
+    ) {
+      return item.direction === "up"
+        ? "styringsrenten stiger"
+        : "styringsrenten faller";
+    }
+
+    return item.direction === "up"
+      ? `${item.theme} stiger`
+      : `${item.theme} faller`;
+  };
+
+  if (top.length === 1) {
+    return `${analysis.challenger} har mest å hente på ${analysis.leader} dersom ${directionText(top[0])}. Det er dette temaet som akkurat nå gir størst mulighet til å redusere gapet mellom de to.`;
+  }
+
+  return `${analysis.challenger} har mest å hente på ${analysis.leader} dersom ${directionText(top[0])} og ${directionText(top[1])}. Det er disse temaene hvor videre utvikling i riktig retning sterkest reduserer gapet mellom #1 og #2.`;
+}
+
+
+
 function renderMonthlyReport() {
   const container =
     document.getElementById(
@@ -9789,6 +9987,11 @@ function renderMonthlyReport() {
       <div class="month-summary">
         <strong>📝 Måneden oppsummert</strong>
         ${summaryText}
+      </div>
+
+      <div class="month-lead-outlook">
+        <strong>👀 Hva kan snu ledelsen?</strong>
+        ${renderLeadOutlookText()}
       </div>
 
     </div>
