@@ -1,0 +1,9365 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Fiasco Finance Dashboard</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1180px;
+      margin: 30px auto;
+      padding: 0 20px 70px;
+      color: #222;
+      background: #fafafa;
+    }
+
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 8px;
+    }
+
+    .brand-logo {
+      width: 92px;
+      height: 72px;
+      object-fit: contain;
+      background: white;
+      border-radius: 8px;
+    }
+
+    .brand-text h1 {
+      margin: 0 0 4px;
+    }
+
+    .brand-text .subtitle {
+      margin: 0;
+    }
+
+    .participant-cell {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .avatar {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      overflow: hidden;
+      border-radius: 50%;
+      background: #ececec;
+      border: 1px solid #ddd;
+      vertical-align: middle;
+    }
+
+    .avatar-sm {
+      width: 34px;
+      height: 34px;
+    }
+
+    .avatar-md {
+      width: 48px;
+      height: 48px;
+    }
+
+    .avatar-lg {
+      width: 72px;
+      height: 72px;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .avatar-fallback {
+      display: none;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 12px;
+      color: #555;
+    }
+
+    .leader-card-content {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .analysis-box {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #f8f8f8;
+    }
+
+    .analysis-content {
+      min-width: 0;
+    }
+
+    .analysis-title {
+      font-weight: bold;
+      margin-bottom: 7px;
+    }
+
+    .analysis-text {
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    .analysis-text + .analysis-text {
+      margin-top: 6px;
+    }
+
+    h1 {
+      margin-bottom: 4px;
+    }
+
+    h2 {
+      margin-top: 42px;
+      margin-bottom: 8px;
+    }
+
+    h3 {
+      margin: 0 0 10px;
+    }
+
+    #leaderboardSection,
+    #chartSection,
+    #themeSection,
+    #historySection,
+    #simulatorSection,
+    #estimatesSection {
+      scroll-margin-top: 72px;
+    }
+
+    .subtitle,
+    .small,
+    .muted {
+      color: #666;
+    }
+
+    .subtitle {
+      margin-top: 0;
+    }
+
+    .small {
+      font-size: 13px;
+    }
+
+    .muted {
+      font-size: 14px;
+    }
+
+    .status-box {
+      background: #f1f1f1;
+      padding: 14px 16px;
+      border-radius: 8px;
+      margin: 22px 0;
+    }
+
+    .ok {
+      color: #16820d;
+      font-weight: bold;
+    }
+
+    .error {
+      color: #b00020;
+      font-weight: bold;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr 1fr 1.25fr;
+      gap: 14px;
+      margin: 20px 0 30px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .card-label {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    .card-value {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .card-small {
+      font-size: 14px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .card-insight {
+      font-size: 16px;
+      line-height: 1.4;
+      font-weight: bold;
+      margin-top: 6px;
+    }
+
+    .card-insight-theme {
+      color: #6a5211;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 15px;
+      background: white;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #ddd;
+      padding: 9px 8px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #f3f3f3;
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+    }
+
+    .rank-1 td {
+      font-weight: bold;
+      background: #f3f8ee;
+    }
+
+    .medal {
+      width: 55px;
+      text-align: center !important;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    /* Participantnavn og avatarer skal starte på samme venstrekant i tabellene. */
+    #liveLeaderboardTable th:nth-child(2),
+    #liveLeaderboardTable td:nth-child(2),
+    #simLeaderboard th:nth-child(2),
+    #simLeaderboard td:nth-child(2),
+    .podium-table th:nth-child(n+2),
+    .podium-table td:nth-child(n+2) {
+      text-align: left;
+    }
+
+    #liveLeaderboardTable .participant-cell,
+    #simLeaderboard .participant-cell,
+    .podium-table .participant-cell {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .chart-panel,
+    .sim-panel {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 18px;
+    }
+
+    .filter-block {
+      margin: 18px 0;
+    }
+
+    .filter-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .filter-row,
+    .mode-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .mode-row {
+      margin: 15px 0;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    .filter-button {
+      border: 1px solid #bbb;
+      background: #fff;
+      color: #222;
+      border-radius: 18px;
+      padding: 7px 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .filter-button:hover,
+    .mode-button:hover,
+    .reset-button:hover {
+      background: #f1f1f1;
+    }
+
+    .filter-button.active,
+    .mode-button.active {
+      background: #222;
+      color: white;
+      border-color: #222;
+    }
+
+    .filter-button.utility {
+      font-weight: bold;
+    }
+
+    .mode-button {
+      border: 1px solid #aaa;
+      background: white;
+      color: #222;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .reset-button {
+      border: 1px solid #999;
+      background: white;
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .chart-note {
+      color: #666;
+      font-size: 14px;
+      margin: 10px 0 0;
+    }
+
+    .chart-wrap {
+      position: relative;
+      min-height: 480px;
+      margin-top: 18px;
+    }
+
+    #scoreChart,
+    #historyChart,
+    #simChart {
+      width: 100% !important;
+      height: 480px !important;
+    }
+
+    .sim-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .sim-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 15px;
+    }
+
+    .sim-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .sim-theme {
+      font-weight: bold;
+      font-size: 17px;
+    }
+
+    .sim-weight {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .sim-values {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .sim-value-box {
+      background: #f7f7f7;
+      border-radius: 7px;
+      padding: 8px;
+    }
+
+    .sim-value-label {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .sim-value-main {
+      font-weight: bold;
+      margin-top: 2px;
+    }
+
+    .slider-shell {
+      position: relative;
+      padding: 26px 0 54px;
+    }
+
+    .sim-slider {
+      width: 100%;
+      display: block;
+    }
+
+    .slider-marker {
+      position: absolute;
+      transform: translateX(-50%);
+      font-size: 11px;
+      white-space: nowrap;
+      z-index: 2;
+    }
+
+    .slider-marker.current {
+      top: 0;
+      color: #555;
+    }
+
+    .slider-marker.current::after {
+      content: "";
+      display: block;
+      width: 1px;
+      height: 12px;
+      background: #777;
+      margin: 2px auto 0;
+    }
+
+    .slider-marker.start {
+      top: 43px;
+      color: #111;
+      font-weight: bold;
+    }
+
+    .slider-marker.start::before {
+      content: "";
+      display: block;
+      width: 1px;
+      height: 12px;
+      background: #777;
+      margin: 0 auto 2px;
+    }
+
+    .sim-range-labels {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #777;
+    }
+
+    .sim-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .sim-number {
+      width: 100px;
+      padding: 6px 8px;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      text-align: right;
+    }
+
+    .sim-unit {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .sim-summary {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 15px 0;
+    }
+
+    .movement-up {
+      color: #16820d;
+      font-weight: bold;
+    }
+
+    .movement-down {
+      color: #b00020;
+      font-weight: bold;
+    }
+
+    .movement-same {
+      color: #666;
+    }
+
+    .scenario-changed {
+      background: #fff7df;
+    }
+
+    .section-divider {
+      border: 0;
+      border-top: 1px solid #ddd;
+      margin: 28px 0;
+    }
+
+    /* Presentasjon / polish */
+    .card.leader-highlight {
+      border: 1px solid #c8ad62;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    }
+
+    .leader-highlight .avatar-lg {
+      width: 82px;
+      height: 82px;
+      border: 2px solid #c8ad62;
+    }
+
+    .analysis-box {
+      border-left: 4px solid #444;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.025);
+    }
+
+    .sim-panel {
+      background: #f8fafc;
+      border-top: 4px solid #5b6470;
+    }
+
+    .sim-intro {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 12px;
+      padding: 12px 14px;
+      border-radius: 9px;
+      background: #eef1f4;
+    }
+
+    .sim-intro strong {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .sim-intro span {
+      color: #5f6670;
+      font-size: 13px;
+    }
+
+    .rank-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rank-old, .rank-new {
+      font-weight: bold;
+    }
+
+    .rank-arrow {
+      color: #777;
+    }
+
+    .top-rank-1 .avatar-sm { width: 40px; height: 40px; border: 2px solid #c8ad62; }
+    .top-rank-2 .avatar-sm,
+    .top-rank-3 .avatar-sm { width: 37px; height: 37px; }
+
+    .quick-nav {
+      display: none;
+    }
+
+    .quick-nav-inner {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      padding: 8px 2px;
+    }
+
+    .quick-nav-inner::-webkit-scrollbar {
+      display: none;
+    }
+
+    .quick-nav a {
+      flex: 0 0 auto;
+      text-decoration: none;
+      color: #222;
+      background: rgba(255,255,255,0.96);
+      border: 1px solid #d4d4d4;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .quick-nav a:active {
+      transform: translateY(1px);
+    }
+
+    .theme-mobile-list {
+      display: none;
+    }
+
+    .theme-mobile-card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .theme-mobile-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .theme-mobile-title strong {
+      font-size: 17px;
+    }
+
+    .theme-mobile-type {
+      color: #666;
+      font-size: 12px;
+    }
+
+    .theme-mobile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .theme-mobile-stat {
+      background: #f7f7f7;
+      border-radius: 8px;
+      padding: 9px 10px;
+      min-width: 0;
+    }
+
+    .theme-mobile-label {
+      display: block;
+      color: #777;
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+
+    .theme-mobile-value {
+      font-weight: bold;
+      line-height: 1.25;
+    }
+
+    /* Nettbrett */
+
+    .theme-toggle {
+      margin-left: auto;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1px solid #ccc;
+      background: #fff;
+      cursor: pointer;
+      font-size: 19px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+    }
+
+    .rank-card-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .rank-card .avatar-md {
+      width: 52px;
+      height: 52px;
+    }
+
+    .rank-gap {
+      margin-top: 5px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .lock-banner {
+      margin: 14px 0 18px;
+      padding: 14px 16px;
+      border: 1px solid #d8b45a;
+      background: #fff8df;
+      border-radius: 10px;
+      line-height: 1.45;
+    }
+
+    .lock-banner strong {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .sim-card input:disabled,
+    .reset-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .theme-subsection {
+      margin-top: 30px;
+      padding-top: 4px;
+    }
+
+    .theme-subsection h3 {
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+
+    .theme-trend-controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin: 12px 0;
+    }
+
+    .theme-trend-controls select {
+      border: 1px solid #aaa;
+      background: white;
+      color: #222;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font: inherit;
+    }
+
+    #themeTrendChart {
+      width: 100% !important;
+      height: 460px !important;
+    }
+
+    .medal-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .medal-summary-card {
+      border: 1px solid #ddd;
+      background: #fff;
+      border-radius: 10px;
+      padding: 11px 12px;
+    }
+
+    .medal-summary-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .medal-summary-count {
+      color: #555;
+      font-size: 13px;
+    }
+
+    .estimates-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .estimate-card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 15px;
+    }
+
+    .estimate-card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .estimate-card-title {
+      font-weight: bold;
+      font-size: 17px;
+    }
+
+    .estimate-status {
+      font-size: 13px;
+      color: #666;
+      text-align: right;
+    }
+
+    .estimate-row {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 8px;
+      border-top: 1px solid #eee;
+      border-radius: 7px;
+    }
+
+    .estimate-row.closest {
+      background: #f3f8ee;
+      font-weight: bold;
+    }
+
+    .estimate-value {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .estimate-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .theme-podium-mobile {
+      display: none;
+    }
+
+    body.dark-mode {
+      background: #11151a;
+      color: #e8edf2;
+    }
+
+    body.dark-mode .subtitle,
+    body.dark-mode .small,
+    body.dark-mode .muted,
+    body.dark-mode .card-label,
+    body.dark-mode .card-small,
+    body.dark-mode .rank-gap,
+    body.dark-mode .sim-weight,
+    body.dark-mode .sim-value-label,
+    body.dark-mode .sim-unit,
+    body.dark-mode .chart-note,
+    body.dark-mode .theme-mobile-type,
+    body.dark-mode .theme-mobile-label,
+    body.dark-mode .estimate-status,
+    body.dark-mode .estimate-meta,
+    body.dark-mode .medal-summary-count {
+      color: #aeb7c2;
+    }
+
+    body.dark-mode .card,
+    body.dark-mode .chart-panel,
+    body.dark-mode .sim-panel,
+    body.dark-mode .sim-card,
+    body.dark-mode .theme-mobile-card,
+    body.dark-mode .estimate-card,
+    body.dark-mode .medal-summary-card,
+    body.dark-mode .theme-podium-mobile-card {
+      background: #181e25;
+      border-color: #303945;
+    }
+
+    body.dark-mode .analysis-box {
+      background: #171d24;
+      border-color: #303945;
+    }
+
+    body.dark-mode .status-box {
+      background: #1b222a;
+    }
+
+    body.dark-mode table {
+      background: #181e25;
+    }
+
+    body.dark-mode th {
+      background: #222a33;
+    }
+
+    body.dark-mode th,
+    body.dark-mode td {
+      border-color: #303945;
+    }
+
+    body.dark-mode .rank-1 td,
+    body.dark-mode .estimate-row.closest {
+      background: #203022;
+    }
+
+    body.dark-mode .filter-button,
+    body.dark-mode .mode-button,
+    body.dark-mode .reset-button,
+    body.dark-mode .theme-toggle,
+    body.dark-mode .theme-trend-controls select {
+      background: #1b222a;
+      color: #e8edf2;
+      border-color: #46515e;
+    }
+
+    body.dark-mode .filter-button.active,
+    body.dark-mode .mode-button.active {
+      background: #e8edf2;
+      color: #11151a;
+      border-color: #e8edf2;
+    }
+
+    body.dark-mode .sim-value-box,
+    body.dark-mode .theme-mobile-stat {
+      background: #222a33;
+    }
+
+    body.dark-mode .scenario-changed {
+      background: #352f1d;
+    }
+
+    body.dark-mode .lock-banner {
+      background: #302918;
+      border-color: #8f762f;
+    }
+
+    body.dark-mode .estimate-row {
+      border-color: #303945;
+    }
+
+    body.dark-mode .quick-nav {
+      background: rgba(17,21,26,0.94);
+      border-color: rgba(255,255,255,0.08);
+    }
+
+    body.dark-mode .quick-nav a {
+      color: #e8edf2;
+      background: rgba(27,34,42,0.97);
+      border-color: #3b4652;
+    }
+
+    body.dark-mode .avatar {
+      background: #2a323c;
+      border-color: #46515e;
+    }
+
+    body.dark-mode .avatar-fallback {
+      color: #dbe2e8;
+    }
+
+    /* Mobil-leaderboards bruker kort med eksplisitt hvit bakgrunn i mobil-CSS.
+       Overstyr dette i dark mode slik at tekst og bakgrunn alltid matcher. */
+    @media (max-width: 800px) {
+      body.dark-mode #liveLeaderboardTable tr,
+      body.dark-mode #simLeaderboard tr {
+        background: #181e25;
+        border-color: #303945;
+        color: #e8edf2;
+      }
+
+      body.dark-mode #liveLeaderboardTable td,
+      body.dark-mode #simLeaderboard td {
+        color: #e8edf2;
+      }
+
+      body.dark-mode #simLeaderboard td:nth-child(3)::before {
+        color: #aeb7c2;
+      }
+
+      body.dark-mode #liveLeaderboardTable tr.rank-1,
+      body.dark-mode #simLeaderboard tr.rank-1 {
+        background: #203022;
+      }
+    }
+
+    @media (max-width: 1100px) {
+      body {
+        max-width: 100%;
+        margin-top: 22px;
+      }
+
+      .quick-nav {
+        display: block;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        margin: 8px -4px 18px;
+        padding: 3px 4px;
+        background: rgba(250,250,250,0.94);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+      }
+
+      .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .sim-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-wrap {
+        min-height: 440px;
+      }
+
+      #scoreChart,
+      #historyChart,
+      #simChart {
+        height: 440px !important;
+      }
+    }
+
+    /* Mobil */
+    @media (max-width: 800px) {
+      body {
+        margin: 16px auto;
+        padding: 0 12px 50px;
+      }
+
+      h2 {
+        margin-top: 30px;
+      }
+
+      .quick-nav {
+        margin-left: -12px;
+        margin-right: -12px;
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .quick-nav a {
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 13px;
+        font-size: 13px;
+      }
+
+      .brand-header {
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand-logo {
+        width: 68px;
+        height: 54px;
+      }
+
+      .brand-text h1 {
+        font-size: 25px;
+      }
+
+      .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .sim-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .leader-highlight .avatar-lg {
+        width: 64px;
+        height: 64px;
+      }
+
+      .cards .card {
+        padding: 12px;
+      }
+
+      .cards .card-value {
+        font-size: 21px;
+      }
+
+      .cards .card-small {
+        font-size: 12px;
+      }
+
+      .cards .card-insight {
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .leader-card-content {
+        gap: 10px;
+      }
+
+      .filter-row {
+        gap: 8px;
+      }
+
+      .filter-button,
+      .mode-button,
+      .reset-button {
+        min-height: 42px;
+      }
+
+      .chart-panel,
+      .sim-panel {
+        padding: 13px;
+        margin-left: -2px;
+        margin-right: -2px;
+      }
+
+      .sim-intro {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .sim-values {
+        grid-template-columns: 1fr;
+      }
+
+      .sim-input-row {
+        flex-wrap: wrap;
+      }
+
+      .sim-number {
+        min-height: 42px;
+        font-size: 16px;
+      }
+
+      .sim-slider {
+        min-height: 34px;
+      }
+
+      .analysis-box {
+        gap: 10px;
+        padding: 13px;
+      }
+
+      .analysis-box .avatar-md {
+        width: 42px;
+        height: 42px;
+      }
+
+      .chart-wrap {
+        min-height: 440px;
+        overflow-x: auto;
+      }
+
+      #scoreChart,
+      #historyChart,
+      #simChart {
+        height: 440px !important;
+      }
+
+      /* Leaderboards blir kort på mobil i stedet for brede tabeller */
+      #liveLeaderboardTable table,
+      #simLeaderboard table {
+        background: transparent;
+      }
+
+      #liveLeaderboardTable thead,
+      #simLeaderboard thead {
+        display: none;
+      }
+
+      #liveLeaderboardTable tbody,
+      #simLeaderboard tbody {
+        display: grid;
+        gap: 9px;
+      }
+
+      #liveLeaderboardTable tr,
+      #simLeaderboard tr {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 8px 10px;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background: white;
+      }
+
+      #liveLeaderboardTable td,
+      #simLeaderboard td {
+        border: 0;
+        padding: 0;
+        text-align: left;
+      }
+
+      #liveLeaderboardTable td:last-child {
+        text-align: right;
+        font-weight: bold;
+      }
+
+      #simLeaderboard tr {
+        grid-template-columns: auto 1fr;
+      }
+
+      #simLeaderboard td:nth-child(3),
+      #simLeaderboard td:nth-child(4) {
+        grid-column: 2;
+      }
+
+      #simLeaderboard td:nth-child(3)::before {
+        content: "Score: ";
+        color: #666;
+        font-weight: normal;
+      }
+
+      #simLeaderboard td:nth-child(4) {
+        margin-top: 2px;
+      }
+
+      #themeSection .table-wrap {
+        display: none;
+      }
+
+      #themeSection .theme-mobile-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .theme-mobile-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .chart-wrap {
+        min-height: 470px;
+      }
+
+      #scoreChart,
+      #historyChart,
+      #simChart {
+        height: 470px !important;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+    @media (max-width: 480px) {
+      body {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .brand-text h1 {
+        font-size: 23px;
+      }
+
+      .brand-text .subtitle {
+        font-size: 14px;
+      }
+
+      .status-box {
+        margin: 18px 0;
+      }
+
+      .cards {
+        gap: 10px;
+      }
+
+      .card {
+        padding: 14px;
+      }
+
+      .filter-button {
+        padding: 7px 11px;
+      }
+
+      .analysis-text {
+        line-height: 1.48;
+      }
+
+      .theme-mobile-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    }
+
+    @media (max-width: 1100px) {
+      #themeTrendChart {
+        height: 440px !important;
+      }
+
+      .medal-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 800px) {
+      .theme-toggle {
+        width: 38px;
+        height: 38px;
+      }
+
+      .rank-card .avatar-md {
+        width: 44px;
+        height: 44px;
+      }
+
+      #themeTrendChart {
+        height: 430px !important;
+      }
+
+      .estimates-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .medal-summary {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .podium-table {
+        display: none;
+      }
+
+      .theme-podium-mobile {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .theme-podium-mobile-card {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 12px;
+      }
+
+      .theme-podium-mobile-title {
+        font-weight: bold;
+        margin-bottom: 8px;
+      }
+
+      .theme-podium-mobile-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+      }
+    }
+
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .season-select-wrap {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--panel, #fff);
+      border: 1px solid var(--border, #d8d8d8);
+      border-radius: 10px;
+      padding: 6px 9px;
+    }
+
+    .season-select-label {
+      font-size: 12px;
+      color: #666;
+      font-weight: bold;
+    }
+
+    .season-select {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    body.dark-mode .season-select-wrap {
+      background: #171717;
+      border-color: #444;
+    }
+
+    body.dark-mode .season-select-label {
+      color: #aaa;
+    }
+
+    body.dark-mode .season-select {
+      color: #f5f5f5;
+      background: #171717;
+    }
+
+    .profile-panel,
+    .history-panel {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 18px;
+    }
+
+    body.dark-mode .profile-panel,
+    body.dark-mode .history-panel {
+      background: #171717;
+      border-color: #3a3a3a;
+    }
+
+    .profile-main {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+      margin-top: 18px;
+    }
+
+    .profile-portrait {
+      width: 132px;
+      height: 132px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #ddd;
+      display: block;
+    }
+
+    body.dark-mode .profile-portrait {
+      border-color: #555;
+    }
+
+    .profile-name {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .profile-season-line {
+      color: #666;
+      margin-bottom: 14px;
+    }
+
+    body.dark-mode .profile-season-line {
+      color: #aaa;
+    }
+
+    .profile-stats-grid,
+    .record-grid,
+    .season-history-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .profile-stat,
+    .record-card,
+    .season-history-card {
+      background: #f7f7f7;
+      border: 1px solid #e2e2e2;
+      border-radius: 10px;
+      padding: 13px;
+    }
+
+    body.dark-mode .profile-stat,
+    body.dark-mode .record-card,
+    body.dark-mode .season-history-card {
+      background: #222;
+      border-color: #3f3f3f;
+    }
+
+    .profile-stat-label,
+    .record-label {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    body.dark-mode .profile-stat-label,
+    body.dark-mode .record-label {
+      color: #aaa;
+    }
+
+    .profile-stat-value,
+    .record-value {
+      font-weight: bold;
+      font-size: 17px;
+    }
+
+    .profile-highlight {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .profile-highlight-card {
+      border-left: 4px solid #999;
+      background: #fafafa;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+
+    body.dark-mode .profile-highlight-card {
+      background: #202020;
+    }
+
+    .history-winner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .history-winner img {
+      width: 68px;
+      height: 68px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 2px solid #caa64b;
+    }
+
+    .history-year {
+      font-size: 13px;
+      color: #666;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    body.dark-mode .history-year {
+      color: #aaa;
+    }
+
+    .history-champion {
+      font-size: 21px;
+      font-weight: bold;
+    }
+
+    .history-podium-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 7px;
+    }
+
+    .history-podium-line img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .history-margin {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #ddd;
+      font-size: 13px;
+      color: #666;
+    }
+
+    body.dark-mode .history-margin {
+      border-color: #444;
+      color: #aaa;
+    }
+
+    .history-note {
+      font-size: 13px;
+      color: #666;
+      margin-top: 8px;
+    }
+
+    body.dark-mode .history-note {
+      color: #aaa;
+    }
+
+    @media (max-width: 1100px) {
+      .profile-stats-grid,
+      .record-grid,
+      .season-history-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
+      .brand-header {
+        align-items: flex-start;
+      }
+
+      .header-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .season-select-wrap {
+        flex: 1;
+        justify-content: space-between;
+      }
+
+      .profile-main {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-portrait {
+        width: 105px;
+        height: 105px;
+      }
+
+      .profile-stats-grid,
+      .record-grid,
+      .season-history-grid,
+      .profile-highlight {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* v7.2 polish: compact mobile header + participant profile */
+    @media (max-width: 700px) {
+      .brand-header {
+        display: grid;
+        grid-template-columns: 68px minmax(0, 1fr);
+        grid-template-areas:
+          "logo title"
+          "logo subtitle"
+          "actions actions";
+        column-gap: 12px;
+        row-gap: 2px;
+        align-items: center;
+      }
+      .brand-logo { grid-area: logo; align-self: start; }
+      .brand-text { display: contents; }
+      .brand-text h1 { grid-area: title; margin: 0; line-height: 1.08; }
+      .brand-text .subtitle {
+        grid-area: subtitle;
+        white-space: normal;
+        line-height: 1.25;
+        max-width: none;
+      }
+      .header-actions {
+        grid-area: actions;
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .season-select-wrap {
+        min-width: 0;
+        width: 100%;
+        flex: none;
+      }
+      .season-select { min-width: 0; max-width: 100%; }
+
+      .profile-panel { padding: 14px; }
+      .profile-main {
+        grid-template-columns: 82px minmax(0, 1fr);
+        gap: 12px;
+        margin-top: 14px;
+      }
+      .profile-portrait { width: 78px; height: 78px; }
+      .profile-name { font-size: 25px; }
+      .profile-season-line { font-size: 13px; margin-bottom: 10px; }
+      .profile-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .profile-stat { padding: 10px; }
+      .profile-stat-label { font-size: 11px; }
+      .profile-stat-value { font-size: 16px; }
+      .profile-highlight { grid-column: 1 / -1; grid-template-columns: 1fr; gap: 8px; }
+      .profile-main > div:nth-child(2) { min-width: 0; }
+      .profile-main > div:nth-child(2) > h3 { margin-top: 14px !important; }
+      #participantProfileButtons {
+        position: sticky;
+        top: 62px;
+        z-index: 45;
+        background: rgba(250,250,250,0.96);
+        padding: 7px 0;
+        margin: -4px 0 8px;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      #participantProfileButtons::-webkit-scrollbar { display:none; }
+      body.dark-mode #participantProfileButtons { background: rgba(17,21,26,0.96); }
+    }
+
+    /* v7.3 participant profile polish */
+    .profile-identity {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .profile-identity-copy {
+      min-width: 0;
+    }
+
+    .profile-current-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .profile-history-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .profile-current-grid .profile-stat,
+    .profile-history-grid .profile-stat {
+      min-height: 78px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .profile-section-title {
+      margin: 20px 0 2px;
+      font-size: 20px;
+    }
+
+    .profile-highlight-card strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .profile-highlight-theme {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .profile-highlight-meta {
+      margin-top: 2px;
+      color: #666;
+      font-size: 13px;
+    }
+
+    body.dark-mode .profile-highlight-meta { color: #aaa; }
+
+    .profile-person-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      flex: 0 0 auto;
+    }
+
+    .profile-person-button img {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+    }
+
+    @media (max-width: 1100px) {
+      .profile-history-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
+      .profile-panel { padding: 12px; }
+      .profile-main { display: block; margin-top: 8px; }
+      .profile-identity {
+        gap: 12px;
+        margin-top: 10px;
+      }
+      .profile-portrait {
+        width: 76px;
+        height: 76px;
+        flex: 0 0 76px;
+      }
+      .profile-name { font-size: 24px; }
+      .profile-season-line { margin-bottom: 0; }
+      .profile-current-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+        margin-top: 12px;
+      }
+      .profile-current-grid .profile-stat {
+        min-height: 70px;
+        padding: 9px 8px;
+      }
+      .profile-current-grid .profile-stat-label {
+        font-size: 10px;
+        line-height: 1.2;
+      }
+      .profile-current-grid .profile-stat-value {
+        font-size: 16px;
+      }
+      .profile-current-grid .small {
+        font-size: 10px;
+        line-height: 1.15;
+      }
+      .profile-history-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+      }
+      .profile-history-grid .profile-stat {
+        min-height: 68px;
+        padding: 9px;
+      }
+      .profile-section-title {
+        margin-top: 16px;
+        font-size: 18px;
+      }
+      .profile-highlight {
+        grid-template-columns: 1fr;
+        gap: 7px;
+        margin-top: 10px;
+      }
+      .profile-highlight-card { padding: 10px 12px; }
+      .profile-highlight-theme { font-size: 16px; }
+      .profile-highlight-meta { font-size: 12px; }
+      .profile-person-button { gap: 5px; padding-left: 8px; padding-right: 9px; }
+      .profile-person-button img { width: 22px; height: 22px; }
+    }
+
+
+    /* v7.5: participant desktop/tablet layout fix */
+    .profile-main {
+      display: block;
+      margin-top: 18px;
+    }
+
+    .profile-top {
+      display: grid;
+      grid-template-columns: minmax(260px, 1.05fr) minmax(0, 3fr);
+      gap: 22px;
+      align-items: center;
+    }
+
+    .profile-top .profile-identity {
+      margin-top: 0;
+      min-width: 0;
+    }
+
+    .profile-top .profile-current-grid {
+      margin-top: 0;
+    }
+
+    .profile-history-grid,
+    .profile-highlight {
+      width: 100%;
+    }
+
+    @media (max-width: 900px) and (min-width: 701px) {
+      .profile-top {
+        grid-template-columns: minmax(220px, 0.9fr) minmax(0, 2.1fr);
+        gap: 16px;
+      }
+
+      .profile-portrait {
+        width: 108px;
+        height: 108px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .profile-main {
+        display: block;
+        margin-top: 8px;
+      }
+
+      .profile-top {
+        display: block;
+      }
+
+      .profile-top .profile-identity {
+        margin-top: 10px;
+      }
+
+      .profile-top .profile-current-grid {
+        margin-top: 12px;
+      }
+    }
+
+
+
+    /* v7.6: when hosted by one.com with external sticky navigation */
+    body.ff-external-nav .quick-nav {
+      display: none !important;
+    }
+
+
+.ff-section-top-btn{margin-left:auto;flex:0 0 auto;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:6px 10px;font:inherit;font-size:12px;font-weight:700;line-height:1;cursor:pointer;white-space:nowrap}
+.ff-section-heading-row{display:flex;align-items:center;gap:10px}
+.ff-section-heading-row>:first-child{min-width:0}
+@media(max-width:700px){.ff-section-top-btn{padding:6px 9px;font-size:11px}}
+
+  </style>
+</head>
+
+<body>
+
+  <div class="brand-header">
+    <img
+      class="brand-logo"
+      src="assets/logo.jpg"
+      alt="Fiasco Finance">
+
+    <div class="brand-text">
+      <h1>Fiasco Finance</h1>
+      <p class="subtitle">Live Championship Dashboard</p>
+    </div>
+
+    <div class="header-actions">
+      <div class="season-select-wrap">
+        <span class="season-select-label">Sesong</span>
+        <select id="seasonSelect" class="season-select" aria-label="Velg FF-sesong"></select>
+      </div>
+
+      <button
+        type="button"
+        class="theme-toggle"
+        id="themeToggle"
+        aria-label="Bytt mellom lys og mørk visning">
+        🌙
+      </button>
+    </div>
+  </div>
+
+  <div id="loading" class="status-box">
+    Laster data fra Google Sheets...
+  </div>
+
+  <nav class="quick-nav" aria-label="Hurtignavigasjon">
+    <div class="quick-nav-inner">
+      <a href="#leaderboardSection">🏆 Live</a>
+      <a href="#chartSection">🔍 Analyse</a>
+      <a href="#themeSection">📊 Tema</a>
+      <a href="#historySection">📈 Race</a>
+      <a href="#simulatorSection">🔮 Hva hvis?</a>
+      <a href="#participantSection">👤 Deltaker</a>
+      <a href="#estimatesSection">📋 Estimat</a>
+    </div>
+  </nav>
+
+  <div id="summaryCards"></div>
+  <div id="leaderboardSection"></div>
+  <div id="chartSection"></div>
+  <div id="themeSection"></div>
+  <div id="historySection"></div>
+  <div id="simulatorSection"></div>
+  <div id="estimatesSection"></div>
+  <div id="participantSection"></div>
+  <div id="historicalSection"></div>
+  <div id="controlSection"></div>
+
+
+<script>
+
+const seasonConfig = {
+  2024: {
+    status: "Final",
+    dashboardDataUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR60zg2b__5BXO6OV7Tbfpofa87lRScvxan32FnlJKbFvLyrjxVOOiyDnhk2vbjHspBpvrLYpt4eqsp/pub?gid=1311778898&single=true&output=csv",
+    historyUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR60zg2b__5BXO6OV7Tbfpofa87lRScvxan32FnlJKbFvLyrjxVOOiyDnhk2vbjHspBpvrLYpt4eqsp/pub?gid=48037430&single=true&output=csv"
+  },
+  2025: {
+    status: "Final",
+    dashboardDataUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSmRuTrQXuP-x5UA87mkJhbz8Wixwz_KLtccQrsln2ozjQ_I5MqgHKbRS7jCYnY3rwp_PXHWI5dmIu/pub?gid=1311778898&single=true&output=csv",
+    historyUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSmRuTrQXuP-x5UA87mkJhbz8Wixwz_KLtccQrsln2ozjQ_I5MqgHKbRS7jCYnY3rwp_PXHWI5dmIu/pub?gid=48037430&single=true&output=csv"
+  },
+  2026: {
+    status: "Live",
+    dashboardDataUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQMD50jmOkPa0hLGblFat2ojNw_xl02KpmNSkaS-On_fnuNYUzVXUgoXbid1-pI-gleYDFOL9q3K7v5/pub?gid=1311778898&single=true&output=csv",
+    historyUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQMD50jmOkPa0hLGblFat2ojNw_xl02KpmNSkaS-On_fnuNYUzVXUgoXbid1-pI-gleYDFOL9q3K7v5/pub?gid=48037430&single=true&output=csv"
+  }
+};
+
+let allSeasonData = {};
+let activeSeasonYear = 2026;
+let selectedProfileParticipant = null;
+
+
+let scoreChart = null;
+let historyChart = null;
+let simChart = null;
+let themeTrendChart = null;
+
+let currentParticipants = [];
+let currentThemeResults = [];
+let currentCompetitionRows = [];
+let currentHistoryRows = [];
+
+let currentStartRow = null;
+let currentLatestRow = null;
+let currentOfficialResult = null;
+
+let selectedParticipants = new Set();
+let selectedThemes = new Set();
+
+let selectedHistoryParticipants = new Set();
+
+let historyMode = "rank";
+let simChartMode = "sim";
+
+let simulationChanges = {};
+let currentSimulatorStatus = "OPEN";
+
+let selectedTrendThemes = new Set();
+let themeTrendVisiblePoints = null;
+let themeTrendTimer = null;
+let themeTrendIsPlaying = false;
+let themeTrendSimulationMode = false;
+
+
+const chartColors = [
+  "#4472C4",
+  "#ED7D31",
+  "#A5A5A5",
+  "#FFC000",
+  "#5B9BD5",
+  "#70AD47",
+  "#264478",
+  "#9E480E",
+  "#636363",
+  "#997300",
+  "#255E91",
+  "#43682B"
+];
+
+
+async function loadCsv(url) {
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Kunne ikke hente CSV-data.");
+  }
+
+  const csvText = await response.text();
+
+  return Papa.parse(csvText, {
+    header: true,
+    skipEmptyLines: true
+  }).data;
+}
+
+
+function parseNumber(value) {
+
+  if (value === null || value === undefined) {
+    return NaN;
+  }
+
+  return Number(
+    String(value)
+      .trim()
+      .replace(/\s/g, "")
+      .replace(/[−–—]/g, "-")
+      .replace("%", "")
+      .replace(",", ".")
+  );
+}
+
+
+function parsePercent(value) {
+  return parseNumber(value) / 100;
+}
+
+
+function formatPercent(value, decimals = 2) {
+
+  return (value * 100)
+    .toFixed(decimals)
+    .replace(".", ",") + "%";
+}
+
+
+function formatPercentPoints(value, decimals = 2) {
+
+  return Number(value)
+    .toFixed(decimals)
+    .replace(".", ",") + "%";
+}
+
+
+function formatNumber(value, decimals = 2) {
+
+  return Number(value)
+    .toFixed(decimals)
+    .replace(".", ",");
+}
+
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+
+function detectSimulatorStatus(dashboardRaw) {
+
+  if (!dashboardRaw.length) {
+    return "OPEN";
+  }
+
+  const keys =
+    Object.keys(
+      dashboardRaw[0]
+    );
+
+  const normalized =
+    keys.map(
+      key =>
+        String(key)
+          .trim()
+          .toUpperCase()
+    );
+
+  const index =
+    normalized.indexOf(
+      "SIMULATORSTATUS"
+    );
+
+  if (
+    index >= 0 &&
+    index + 1 <
+    normalized.length
+  ) {
+
+    const candidate =
+      normalized[
+        index + 1
+      ];
+
+    if (
+      candidate === "OPEN" ||
+      candidate === "CLOSED"
+    ) {
+      return candidate;
+    }
+  }
+
+  for (
+    const row of dashboardRaw
+  ) {
+
+    const value =
+      row["SimulatorStatus"];
+
+    if (value) {
+
+      const candidate =
+        String(value)
+          .trim()
+          .toUpperCase();
+
+      if (
+        candidate === "OPEN" ||
+        candidate === "CLOSED"
+      ) {
+        return candidate;
+      }
+    }
+  }
+
+  return "OPEN";
+}
+
+
+function isDarkMode() {
+  return document.body.classList.contains("dark-mode");
+}
+
+
+function applyTheme(mode) {
+
+  const dark =
+    mode === "dark";
+
+  document.body.classList.toggle(
+    "dark-mode",
+    dark
+  );
+
+  const toggle =
+    document.getElementById(
+      "themeToggle"
+    );
+
+  if (toggle) {
+    toggle.textContent =
+      dark
+        ? "☀️"
+        : "🌙";
+  }
+
+  try {
+    localStorage.setItem(
+      "ff-theme",
+      dark
+        ? "dark"
+        : "light"
+    );
+  } catch (error) {
+    // Ignorer lagringsfeil.
+  }
+
+  if (
+    typeof Chart !==
+    "undefined"
+  ) {
+
+    Chart.defaults.color =
+      dark
+        ? "#cbd3dc"
+        : "#666";
+
+    Chart.defaults.borderColor =
+      dark
+        ? "#38424d"
+        : "#ddd";
+
+    if (
+      currentParticipants.length
+    ) {
+
+      const scoreCanvas =
+        document.getElementById(
+          "scoreChart"
+        );
+
+      if (scoreCanvas) {
+        renderStackedChart();
+      }
+
+      const historyCanvas =
+        document.getElementById(
+          "historyChart"
+        );
+
+      if (historyCanvas) {
+        renderHistoryChart();
+      }
+
+      const simCanvas =
+        document.getElementById(
+          "simChart"
+        );
+
+      if (simCanvas) {
+        renderSimulatorChart();
+      }
+
+      const trendCanvas =
+        document.getElementById(
+          "themeTrendChart"
+        );
+
+      if (trendCanvas) {
+        renderThemeTrendChart();
+      }
+    }
+  }
+}
+
+
+function initializeTheme() {
+
+  let mode = null;
+
+  try {
+    mode =
+      localStorage.getItem(
+        "ff-theme"
+      );
+  } catch (error) {
+    mode = null;
+  }
+
+  if (
+    mode !== "light" &&
+    mode !== "dark"
+  ) {
+
+    mode =
+      window.matchMedia &&
+      window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches
+        ? "dark"
+        : "light";
+  }
+
+  applyTheme(mode);
+
+  const toggle =
+    document.getElementById(
+      "themeToggle"
+    );
+
+  if (toggle) {
+
+    toggle.addEventListener(
+      "click",
+      () => {
+
+        applyTheme(
+          isDarkMode()
+            ? "light"
+            : "dark"
+        );
+      }
+    );
+  }
+}
+
+
+function detectParticipants(dashboardRaw) {
+
+  const competitionRow =
+    dashboardRaw.find(row =>
+      row["TEMA"] &&
+      row["Vekt"] &&
+      row["Type"]
+    );
+
+  if (!competitionRow) {
+    throw new Error(
+      "Fant ingen gyldig konkurranserad i DashboardData."
+    );
+  }
+
+  const keys =
+    Object.keys(
+      competitionRow
+    );
+
+  const typeIndex =
+    keys.indexOf(
+      "Type"
+    );
+
+  if (typeIndex < 0) {
+    throw new Error(
+      "Fant ikke Type-kolonnen i DashboardData."
+    );
+  }
+
+  return keys
+    .slice(
+      typeIndex + 1
+    )
+    .filter(
+      key =>
+        key &&
+        !key.startsWith("_") &&
+        competitionRow[key] !== undefined &&
+        competitionRow[key] !== ""
+    );
+}
+
+
+function getCompetitionRows(
+  rows,
+  participants
+) {
+
+  return rows.filter(row =>
+
+    row["TEMA"] &&
+    row["Vekt"] &&
+    row["Type"] &&
+
+    participants.every(person =>
+      row[person] !== undefined &&
+      row[person] !== ""
+    )
+  );
+}
+
+
+function getValidHistoryRows(
+  rows,
+  competitionRows
+) {
+
+  const themes =
+    competitionRows.map(
+      row => row["TEMA"]
+    );
+
+  return rows.filter(row => {
+
+    if (!row["Dato"]) {
+      return false;
+    }
+
+    return themes.every(theme =>
+      row[theme] !== undefined &&
+      row[theme] !== ""
+    );
+  });
+}
+
+
+function calculateActualChange(
+  themeRow,
+  startRow,
+  statusRow
+) {
+
+  const theme =
+    themeRow["TEMA"];
+
+  const type =
+    String(themeRow["Type"])
+      .trim()
+      .toLowerCase();
+
+  const start =
+    parseNumber(
+      startRow[theme]
+    );
+
+  const latest =
+    parseNumber(
+      statusRow[theme]
+    );
+
+
+  if (type === "prosent") {
+    return latest / 100;
+  }
+
+
+  if (type === "pris") {
+
+    if (
+      !Number.isFinite(start) ||
+      start === 0
+    ) {
+
+      throw new Error(
+        `Ugyldig startverdi for "${theme}".`
+      );
+    }
+
+    return latest / start - 1;
+  }
+
+
+  throw new Error(
+    `Ukjent Type "${themeRow["Type"]}" for "${theme}".`
+  );
+}
+
+
+function calculateCompetition(
+  competitionRows,
+  participants,
+  startRow,
+  statusRow
+) {
+
+  const participantScores =
+    Object.fromEntries(
+      participants.map(
+        person => [person, 0]
+      )
+    );
+
+
+  const themeResults = [];
+
+
+  competitionRows.forEach(row => {
+
+    const theme =
+      row["TEMA"];
+
+    const weight =
+      parseNumber(
+        row["Vekt"]
+      );
+
+    const actualChange =
+      calculateActualChange(
+        row,
+        startRow,
+        statusRow
+      );
+
+
+    let closestPerson = null;
+    let closestDistance = Infinity;
+
+    const personResults = {};
+
+
+    participants.forEach(person => {
+
+      const prediction =
+        parsePercent(
+          row[person]
+        );
+
+      const absoluteDistance =
+        Math.abs(
+          actualChange -
+          prediction
+        );
+
+      const weightedDistance =
+        absoluteDistance *
+        weight;
+
+
+      participantScores[person] +=
+        weightedDistance;
+
+
+      personResults[person] = {
+        prediction,
+        absoluteDistance,
+        weightedDistance
+      };
+
+
+      if (
+        absoluteDistance <
+        closestDistance
+      ) {
+
+        closestDistance =
+          absoluteDistance;
+
+        closestPerson =
+          person;
+      }
+    });
+
+
+    themeResults.push({
+
+      theme,
+      type: row["Type"],
+      weight,
+      actualChange,
+      closestPerson,
+      closestDistance,
+      personResults
+    });
+  });
+
+
+  const leaderboard =
+    participants
+      .map(person => ({
+        person,
+        score:
+          participantScores[person]
+      }))
+      .sort(
+        (a, b) =>
+          a.score -
+          b.score
+      );
+
+
+  return {
+    leaderboard,
+    themeResults
+  };
+}
+
+
+
+function participantSlug(person) {
+
+  return String(person)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/æ/g, "ae")
+    .replace(/ø/g, "o")
+    .replace(/å/g, "a")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+
+function participantImagePath(person) {
+  return `assets/participants/${participantSlug(person)}.jpg`;
+}
+
+
+function participantInitials(person) {
+
+  return String(person)
+    .trim()
+    .split(/\s+/)
+    .map(part => part.charAt(0))
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+
+function avatarHtml(
+  person,
+  sizeClass = "avatar-sm"
+) {
+
+  const src =
+    `assets/participants/${participantSlug(person)}.jpg`;
+
+  const initials =
+    participantInitials(person);
+
+  return `
+    <span class="avatar ${sizeClass}">
+      <img
+        src="${src}"
+        alt=""
+        loading="lazy"
+        onerror="
+          this.style.display='none';
+          this.nextElementSibling.style.display='flex';
+        ">
+      <span class="avatar-fallback">
+        ${initials}
+      </span>
+    </span>
+  `;
+}
+
+
+function scoreForSelection(
+  person,
+  themeResults
+) {
+
+  return themeResults.reduce(
+    (sum, themeRow) =>
+      sum +
+      (
+        themeRow.personResults[person]
+          ?.weightedDistance || 0
+      ),
+    0
+  );
+}
+
+
+function rankingForSelection(
+  participants,
+  themeResults
+) {
+
+  return participants
+    .map(person => ({
+      person,
+      score:
+        scoreForSelection(
+          person,
+          themeResults
+        )
+    }))
+    .sort(
+      (a, b) =>
+        a.score -
+        b.score
+    );
+}
+
+
+function mainHeadToHeadDrivers(
+  leader,
+  second,
+  themeResults,
+  maxItems = 2
+) {
+
+  return themeResults
+    .map(themeRow => {
+
+      const leaderContribution =
+        themeRow
+          .personResults[
+            leader
+          ]
+          ?.weightedDistance || 0;
+
+      const secondContribution =
+        themeRow
+          .personResults[
+            second
+          ]
+          ?.weightedDistance || 0;
+
+      return {
+        theme: themeRow.theme,
+        advantage:
+          secondContribution -
+          leaderContribution
+      };
+    })
+    .filter(
+      row =>
+        Math.abs(
+          row.advantage
+        ) >= 0.001
+    )
+    .sort(
+      (a, b) =>
+        Math.abs(b.advantage) -
+        Math.abs(a.advantage)
+    )
+    .slice(
+      0,
+      maxItems
+    );
+}
+
+
+function renderLiveAnalysis(
+  participants,
+  themes
+) {
+
+  const target =
+    document.getElementById(
+      "liveAnalysis"
+    );
+
+  if (!target) {
+    return;
+  }
+
+
+  if (
+    participants.length === 0 ||
+    themes.length === 0
+  ) {
+
+    target.innerHTML = `
+      <div class="analysis-box">
+        <div class="analysis-content">
+          <div class="analysis-title">
+            📝 Kommentar
+          </div>
+          <p class="analysis-text">
+            Velg minst én deltaker og ett tema
+            for å få en analyse.
+          </p>
+        </div>
+      </div>
+    `;
+
+    return;
+  }
+
+
+  const ranking =
+    rankingForSelection(
+      participants,
+      themes
+    );
+
+  const leader =
+    ranking[0];
+
+  const second =
+    ranking[1];
+
+
+  let paragraph1 = "";
+
+  if (second) {
+
+    const gap =
+      second.score -
+      leader.score;
+
+    const fullSelection =
+      participants.length ===
+        currentParticipants.length &&
+      themes.length ===
+        currentThemeResults.length;
+
+    paragraph1 =
+      fullSelection
+        ? `<strong>${leader.person}</strong> leder med ${formatPercent(gap)} foran ${second.person}.`
+        : `<strong>${leader.person}</strong> leder blant de valgte deltakerne og temaene med ${formatPercent(gap)} foran ${second.person}.`;
+
+
+    const drivers =
+      mainHeadToHeadDrivers(
+        leader.person,
+        second.person,
+        themes,
+        2
+      );
+
+    if (drivers.length) {
+
+      const leaderAdvantages =
+        drivers.filter(
+          row =>
+            row.advantage > 0
+        );
+
+      const secondAdvantages =
+        drivers.filter(
+          row =>
+            row.advantage < 0
+        );
+
+      if (leaderAdvantages.length) {
+
+        paragraph1 +=
+          ` ${leader.person} har størst fordel på ${leaderAdvantages.map(row => row.theme).join(" og ")}.`;
+      }
+
+      if (secondAdvantages.length) {
+
+        paragraph1 +=
+          ` ${second.person} gjør det relativt bedre på ${secondAdvantages.map(row => row.theme).join(" og ")}.`;
+      }
+    }
+
+  } else {
+
+    const biggest =
+      themes
+        .map(themeRow => ({
+          theme: themeRow.theme,
+          value:
+            themeRow
+              .personResults[
+                leader.person
+              ]
+              ?.weightedDistance || 0
+        }))
+        .sort(
+          (a, b) =>
+            b.value -
+            a.value
+        )[0];
+
+    paragraph1 =
+      `<strong>${leader.person}</strong> er eneste valgte deltaker.`;
+
+    if (biggest) {
+      paragraph1 +=
+        ` Største scorebidrag blant de valgte temaene kommer fra ${biggest.theme}.`;
+    }
+  }
+
+
+  let paragraph2 = "";
+
+  const fullSelection =
+    participants.length ===
+      currentParticipants.length &&
+    themes.length ===
+      currentThemeResults.length;
+
+  if (
+    fullSelection &&
+    ranking.length > 1
+  ) {
+
+    const last =
+      ranking[
+        ranking.length - 1
+      ];
+
+    const biggestLast =
+      themes
+        .map(themeRow => ({
+          theme: themeRow.theme,
+          value:
+            themeRow
+              .personResults[
+                last.person
+              ]
+              ?.weightedDistance || 0
+        }))
+        .sort(
+          (a, b) =>
+            b.value -
+            a.value
+        )[0];
+
+    if (biggestLast) {
+
+      paragraph2 =
+        `<strong>${last.person}</strong> ligger sist. Det største enkeltbidraget til den høye scoren kommer fra ${biggestLast.theme} (${formatPercent(biggestLast.value)}).`;
+    }
+  }
+
+
+  target.innerHTML = `
+    <div class="analysis-box">
+      ${avatarHtml(
+        leader.person,
+        "avatar-md"
+      )}
+
+      <div class="analysis-content">
+        <div class="analysis-title">
+          📝 Kommentar til stillingen
+        </div>
+
+        <p class="analysis-text">
+          ${paragraph1}
+        </p>
+
+        ${
+          paragraph2
+            ? `<p class="analysis-text">${paragraph2}</p>`
+            : ""
+        }
+      </div>
+    </div>
+  `;
+}
+
+
+function simulatedRankMap(
+  result
+) {
+
+  const map = {};
+
+  result.leaderboard
+    .forEach(
+      (entry, index) => {
+
+        map[
+          entry.person
+        ] =
+          index + 1;
+      }
+    );
+
+  return map;
+}
+
+
+function renderSimulatorAnalysis(
+  result
+) {
+
+  const target =
+    document.getElementById(
+      "simAnalysis"
+    );
+
+  if (!target) {
+    return;
+  }
+
+
+  const changedThemes =
+    currentThemeResults
+      .filter(
+        row =>
+          Math.abs(
+            simulationChanges[
+              row.theme
+            ] -
+            row.actualChange
+          ) >
+          0.00001
+      );
+
+
+  const leader =
+    result.leaderboard[0];
+
+  const second =
+    result.leaderboard[1];
+
+  const liveRanks =
+    officialRankMap();
+
+  const simRanks =
+    simulatedRankMap(
+      result
+    );
+
+
+  let paragraph1 = "";
+
+  if (second) {
+
+    const gap =
+      second.score -
+      leader.score;
+
+    const oldRank =
+      liveRanks[
+        leader.person
+      ];
+
+    const newRank =
+      simRanks[
+        leader.person
+      ];
+
+    const movement =
+      oldRank === newRank
+        ? `forblir på ${newRank}. plass`
+        : `går fra ${oldRank}. til ${newRank}. plass`;
+
+    paragraph1 =
+      `<strong>${leader.person}</strong> ${movement} og leder scenarioet med ${formatPercent(gap)} foran ${second.person}.`;
+
+  } else {
+
+    paragraph1 =
+      `<strong>${leader.person}</strong> leder det simulerte scenarioet.`;
+  }
+
+
+  let paragraph2 = "";
+
+  if (changedThemes.length === 0) {
+
+    paragraph2 =
+      "Scenarioet er identisk med dagens live-status.";
+
+  } else {
+
+    if (changedThemes.length === 1) {
+
+      const theme =
+        changedThemes[0];
+
+      paragraph2 =
+        `<strong>${theme.theme}</strong> er eneste endrede tema, fra ${formatPercent(theme.actualChange)} til ${formatPercent(simulationChanges[theme.theme])}.`;
+
+    } else {
+
+      paragraph2 =
+        `${changedThemes.length} temaer er endret i scenarioet.`;
+    }
+
+
+    if (second) {
+
+      const simulatedThemeMap =
+        Object.fromEntries(
+          result.themeResults.map(
+            row => [
+              row.theme,
+              row
+            ]
+          )
+        );
+
+      const driver =
+        changedThemes
+          .map(theme => {
+
+            const simTheme =
+              simulatedThemeMap[
+                theme.theme
+              ];
+
+            const leaderContribution =
+              simTheme
+                ?.personResults[
+                  leader.person
+                ]
+                ?.weightedDistance || 0;
+
+            const secondContribution =
+              simTheme
+                ?.personResults[
+                  second.person
+                ]
+                ?.weightedDistance || 0;
+
+            return {
+              theme: theme.theme,
+              advantage:
+                secondContribution -
+                leaderContribution
+            };
+          })
+          .sort(
+            (a, b) =>
+              Math.abs(b.advantage) -
+              Math.abs(a.advantage)
+          )[0];
+
+      if (
+        driver &&
+        Math.abs(
+          driver.advantage
+        ) >= 0.001
+      ) {
+
+        const beneficiary =
+          driver.advantage > 0
+            ? leader.person
+            : second.person;
+
+        paragraph2 +=
+          ` Blant de endrede temaene er ${driver.theme} den største driveren i favør av ${beneficiary}.`;
+      }
+    }
+
+
+    const rankMoves =
+      result.leaderboard
+        .map(entry => ({
+          person: entry.person,
+          change:
+            liveRanks[
+              entry.person
+            ] -
+            simRanks[
+              entry.person
+            ]
+        }));
+
+    const bestMove =
+      rankMoves
+        .filter(
+          row =>
+            row.change > 0
+        )
+        .sort(
+          (a, b) =>
+            b.change -
+            a.change
+        )[0];
+
+    const worstMove =
+      rankMoves
+        .filter(
+          row =>
+            row.change < 0
+        )
+        .sort(
+          (a, b) =>
+            a.change -
+            b.change
+        )[0];
+
+
+    if (bestMove) {
+
+      paragraph2 +=
+        ` ${bestMove.person} klatrer mest, med ${bestMove.change} plass${bestMove.change === 1 ? "" : "er"}.`;
+    }
+
+    if (worstMove) {
+
+      const fall =
+        Math.abs(
+          worstMove.change
+        );
+
+      paragraph2 +=
+        ` ${worstMove.person} faller mest, med ${fall} plass${fall === 1 ? "" : "er"}.`;
+    }
+  }
+
+
+  target.innerHTML = `
+    <div class="analysis-box">
+      ${avatarHtml(
+        leader.person,
+        "avatar-md"
+      )}
+
+      <div class="analysis-content">
+        <div class="analysis-title">
+          🔎 Scenarioanalyse
+        </div>
+
+        <p class="analysis-text">
+          ${paragraph1}
+        </p>
+
+        <p class="analysis-text">
+          ${paragraph2}
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+
+function showSummaryCards(
+  leaderboard,
+  latestRow,
+  competitionRows,
+  participants
+) {
+
+  const leader =
+    leaderboard[0];
+
+  const second =
+    leaderboard[1];
+
+  const third =
+    leaderboard[2];
+
+  const gapSecond =
+    second
+      ? second.score -
+        leader.score
+      : 0;
+
+  const gapThird =
+    third
+      ? third.score -
+        leader.score
+      : 0;
+
+
+  let whyLeader =
+    "Lavest samlet vektet avstand.";
+
+  if (second) {
+
+    const drivers =
+      mainHeadToHeadDrivers(
+        leader.person,
+        second.person,
+        currentThemeResults,
+        1
+      );
+
+    if (drivers.length) {
+
+      const driver =
+        drivers[0];
+
+      if (driver.advantage > 0) {
+
+        whyLeader =
+          `${leader.person}s største fordel mot ${second.person} kommer fra ` +
+          `<span class="card-insight-theme">${driver.theme}</span>.`;
+
+      } else {
+
+        whyLeader =
+          `${second.person} gjør det best relativt på ` +
+          `<span class="card-insight-theme">${driver.theme}</span>, ` +
+          `men ${leader.person} har lavere totalscore.`;
+      }
+    }
+  }
+
+
+  document.getElementById(
+    "summaryCards"
+  ).innerHTML = `
+
+    <div class="cards">
+
+      <div class="card leader-highlight">
+
+        <div class="card-label">
+          🏆 Leder
+        </div>
+
+        <div class="leader-card-content">
+
+          ${avatarHtml(
+            leader.person,
+            "avatar-lg"
+          )}
+
+          <div>
+
+            <div class="card-value">
+              ${leader.person}
+            </div>
+
+            <div class="card-small">
+              Score
+              ${formatPercent(
+                leader.score
+              )}
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="card rank-card">
+
+        <div class="card-label">
+          🥈 2. plass
+        </div>
+
+        ${
+          second
+            ? `
+              <div class="rank-card-content">
+                ${avatarHtml(
+                  second.person,
+                  "avatar-md"
+                )}
+
+                <div>
+                  <div class="card-value">
+                    ${second.person}
+                  </div>
+
+                  <div class="card-small">
+                    Score ${formatPercent(
+                      second.score
+                    )}
+                  </div>
+
+                  <div class="rank-gap">
+                    ${formatPercent(
+                      gapSecond
+                    )} bak
+                  </div>
+                </div>
+              </div>
+            `
+            : `<div class="card-value">-</div>`
+        }
+
+      </div>
+
+
+      <div class="card rank-card">
+
+        <div class="card-label">
+          🥉 3. plass
+        </div>
+
+        ${
+          third
+            ? `
+              <div class="rank-card-content">
+                ${avatarHtml(
+                  third.person,
+                  "avatar-md"
+                )}
+
+                <div>
+                  <div class="card-value">
+                    ${third.person}
+                  </div>
+
+                  <div class="card-small">
+                    Score ${formatPercent(
+                      third.score
+                    )}
+                  </div>
+
+                  <div class="rank-gap">
+                    ${formatPercent(
+                      gapThird
+                    )} bak
+                  </div>
+                </div>
+              </div>
+            `
+            : `<div class="card-value">-</div>`
+        }
+
+      </div>
+
+
+      <div class="card">
+
+        <div class="card-label">
+          💡 Hvorfor leder ${leader.person}?
+        </div>
+
+        <div class="card-insight">
+          ${whyLeader}
+        </div>
+
+      </div>
+
+    </div>
+  `;
+}
+
+
+function showLeaderboard(
+  leaderboard
+) {
+
+  const medals = [
+    "🥇",
+    "🥈",
+    "🥉"
+  ];
+
+
+  let html = `
+
+    <h2>
+      🏆 Live leaderboard
+    </h2>
+
+    <p>
+      Lavest samlet vektet
+      %-avstand leder konkurransen.
+    </p>
+
+    <div class="table-wrap" id="liveLeaderboardTable">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th class="medal">
+              Plass
+            </th>
+
+            <th>
+              Deltaker
+            </th>
+
+            <th>
+              Score
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+  `;
+
+
+  leaderboard.forEach(
+    (row, index) => {
+
+      html += `
+
+        <tr class="${
+          index === 0
+            ? "rank-1 top-rank-1"
+            : index === 1
+              ? "top-rank-2"
+              : index === 2
+                ? "top-rank-3"
+                : ""
+        }">
+
+          <td class="medal">
+
+            ${
+              medals[index] ||
+              (index + 1)
+            }
+
+          </td>
+
+          <td>
+            <span class="participant-cell">
+              ${avatarHtml(
+                row.person,
+                "avatar-sm"
+              )}
+              <span>
+                ${row.person}
+              </span>
+            </span>
+          </td>
+
+          <td>
+            ${formatPercent(
+              row.score
+            )}
+          </td>
+
+        </tr>
+      `;
+    }
+  );
+
+
+  html += `
+        </tbody>
+      </table>
+    </div>
+  `;
+
+
+  document.getElementById(
+    "leaderboardSection"
+  ).innerHTML = html;
+}
+
+
+function createFilterButton(
+  label,
+  isActive,
+  callback,
+  utility = false
+) {
+
+  const button =
+    document.createElement(
+      "button"
+    );
+
+  button.type =
+    "button";
+
+  button.textContent =
+    label;
+
+  button.className =
+    "filter-button" +
+    (
+      isActive
+        ? " active"
+        : ""
+    ) +
+    (
+      utility
+        ? " utility"
+        : ""
+    );
+
+  button.addEventListener(
+    "click",
+    callback
+  );
+
+  return button;
+}
+
+
+function themeColor(theme) {
+
+  const index =
+    currentThemeResults
+      .findIndex(
+        row =>
+          row.theme === theme
+      );
+
+  return chartColors[
+    (
+      index < 0
+        ? 0
+        : index
+    ) %
+    chartColors.length
+  ];
+}
+
+
+function participantColor(person) {
+
+  const index =
+    currentParticipants
+      .indexOf(person);
+
+  return chartColors[
+    (
+      index < 0
+        ? 0
+        : index
+    ) %
+    chartColors.length
+  ];
+}
+
+
+function createChartSection(
+  participants,
+  themeResults
+) {
+
+  document.getElementById(
+    "chartSection"
+  ).innerHTML = `
+
+    <h2>
+      📚 Hva avgjør stillingen?
+    </h2>
+
+    <p>
+      Hvert felt viser hvor mye
+      temaet bidrar til deltakerens
+      samlede score.
+    </p>
+
+    <div class="chart-panel">
+
+      <div class="filter-block">
+
+        <div class="filter-title">
+          Deltakere
+        </div>
+
+        <div
+          class="filter-row"
+          id="participantFilters">
+        </div>
+
+      </div>
+
+
+      <div class="filter-block">
+
+        <div class="filter-title">
+          Temaer
+        </div>
+
+        <div
+          class="filter-row"
+          id="themeFilters">
+        </div>
+
+      </div>
+
+
+      <p
+        class="chart-note"
+        id="chartSelectionInfo">
+      </p>
+
+
+      <div class="chart-wrap">
+
+        <canvas
+          id="scoreChart">
+        </canvas>
+
+      </div>
+
+      <div id="liveAnalysis"></div>
+
+    </div>
+  `;
+
+
+  selectedParticipants =
+    new Set(
+      participants
+    );
+
+  selectedThemes =
+    new Set(
+      themeResults.map(
+        row => row.theme
+      )
+    );
+
+
+  renderFilterButtons();
+  renderStackedChart();
+}
+
+
+function renderFilterButtons() {
+
+  const participantContainer =
+    document.getElementById(
+      "participantFilters"
+    );
+
+  const themeContainer =
+    document.getElementById(
+      "themeFilters"
+    );
+
+
+  participantContainer.innerHTML =
+    "";
+
+  themeContainer.innerHTML =
+    "";
+
+
+  participantContainer.appendChild(
+
+    createFilterButton(
+
+      "Alle",
+
+      false,
+
+      () => {
+
+        selectedParticipants =
+          new Set(
+            currentParticipants
+          );
+
+        renderFilterButtons();
+        renderStackedChart();
+      },
+
+      true
+    )
+  );
+
+
+  participantContainer.appendChild(
+
+    createFilterButton(
+
+      "Ingen",
+
+      false,
+
+      () => {
+
+        selectedParticipants =
+          new Set();
+
+        renderFilterButtons();
+        renderStackedChart();
+      },
+
+      true
+    )
+  );
+
+
+  currentParticipants.forEach(
+    person => {
+
+      participantContainer
+        .appendChild(
+
+          createFilterButton(
+
+            person,
+
+            selectedParticipants
+              .has(person),
+
+            () => {
+
+              if (
+                selectedParticipants
+                  .has(person)
+              ) {
+
+                selectedParticipants
+                  .delete(person);
+
+              } else {
+
+                selectedParticipants
+                  .add(person);
+              }
+
+              renderFilterButtons();
+              renderStackedChart();
+            }
+          )
+        );
+    }
+  );
+
+
+  themeContainer.appendChild(
+
+    createFilterButton(
+
+      "Alle",
+
+      false,
+
+      () => {
+
+        selectedThemes =
+          new Set(
+            currentThemeResults
+              .map(
+                row =>
+                  row.theme
+              )
+          );
+
+        renderFilterButtons();
+        renderStackedChart();
+      },
+
+      true
+    )
+  );
+
+
+  themeContainer.appendChild(
+
+    createFilterButton(
+
+      "Ingen",
+
+      false,
+
+      () => {
+
+        selectedThemes =
+          new Set();
+
+        renderFilterButtons();
+        renderStackedChart();
+      },
+
+      true
+    )
+  );
+
+
+  currentThemeResults.forEach(
+    row => {
+
+      themeContainer
+        .appendChild(
+
+          createFilterButton(
+
+            row.theme,
+
+            selectedThemes
+              .has(row.theme),
+
+            () => {
+
+              if (
+                selectedThemes
+                  .has(row.theme)
+              ) {
+
+                selectedThemes
+                  .delete(
+                    row.theme
+                  );
+
+              } else {
+
+                selectedThemes
+                  .add(
+                    row.theme
+                  );
+              }
+
+              renderFilterButtons();
+              renderStackedChart();
+            }
+          )
+        );
+    }
+  );
+}
+
+
+function stackedDatasets(
+  themeResults,
+  participants
+) {
+
+  return themeResults.map(
+    themeRow => ({
+
+      label:
+        themeRow.theme,
+
+      backgroundColor:
+        themeColor(
+          themeRow.theme
+        ),
+
+      borderColor:
+        themeColor(
+          themeRow.theme
+        ),
+
+      borderWidth: 1,
+
+      data:
+        participants.map(
+          person =>
+            themeRow
+              .personResults[
+                person
+              ]
+              .weightedDistance *
+            100
+        ),
+
+      themeRow
+    })
+  );
+}
+
+
+const stackTotalPlugin = {
+
+  id:
+    "stackTotalLabels",
+
+  afterDatasetsDraw(chart) {
+
+    const {
+      ctx,
+      scales: {
+        x,
+        y
+      }
+    } = chart;
+
+
+    ctx.save();
+
+    ctx.font =
+      "bold 12px Arial";
+
+    ctx.textAlign =
+      "center";
+
+    ctx.fillStyle =
+      isDarkMode()
+        ? "#e8edf2"
+        : "#222";
+
+
+    chart.data.labels
+      .forEach(
+        (label, index) => {
+
+          const total =
+            chart.data.datasets
+              .reduce(
+                (
+                  sum,
+                  dataset
+                ) =>
+                  sum +
+                  (
+                    dataset.data[
+                      index
+                    ] || 0
+                  ),
+                0
+              );
+
+
+          if (total > 0) {
+
+            ctx.fillText(
+
+              formatPercentPoints(
+                total
+              ),
+
+              x.getPixelForValue(
+                index
+              ),
+
+              y.getPixelForValue(
+                total
+              ) - 8
+            );
+          }
+        }
+      );
+
+
+    ctx.restore();
+  }
+};
+
+
+function renderStackedChart() {
+
+  const participants =
+    currentParticipants
+      .filter(
+        person =>
+          selectedParticipants
+            .has(person)
+      );
+
+
+  const themes =
+    currentThemeResults
+      .filter(
+        row =>
+          selectedThemes
+            .has(row.theme)
+      );
+
+
+  document.getElementById(
+    "chartSelectionInfo"
+  ).textContent =
+
+    `Visning: ${
+      participants.length
+    } av ${
+      currentParticipants.length
+    } deltakere · ${
+      themes.length
+    } av ${
+      currentThemeResults.length
+    } temaer.`;
+
+
+  if (scoreChart) {
+    scoreChart.destroy();
+  }
+
+
+  scoreChart =
+    new Chart(
+
+      document.getElementById(
+        "scoreChart"
+      ),
+
+      {
+
+        type: "bar",
+
+        data: {
+
+          labels:
+            participants,
+
+          datasets:
+            stackedDatasets(
+              themes,
+              participants
+            )
+        },
+
+
+        options: {
+
+          /* Chart.js skal ikke animere akser eller estimatlinjer på nytt for
+             hvert datapunkt. Bare selve temakurven får flere verdier. */
+          animation: false,
+
+          responsive: true,
+
+          maintainAspectRatio:
+            false,
+
+
+          scales: {
+
+            x: {
+              stacked: true
+            },
+
+            y: {
+
+              stacked: true,
+
+              beginAtZero: true,
+
+              title: {
+                display: true,
+                text:
+                  "Vektet %-avstand"
+              },
+
+              ticks: {
+                callback:
+                  value =>
+                    value + "%"
+              }
+            }
+          },
+
+
+          plugins: {
+
+            legend: {
+              position:
+                "bottom"
+            },
+
+
+            tooltip: {
+
+              callbacks: {
+
+                label:
+                  context => {
+
+                    const themeRow =
+                      context.dataset
+                        .themeRow;
+
+                    const result =
+                      themeRow
+                        .personResults[
+                          context.label
+                        ];
+
+                    return (
+                      themeRow.theme +
+                      ": " +
+                      formatPercent(
+                        result
+                          .weightedDistance
+                      )
+                    );
+                  },
+
+
+                afterLabel:
+                  context => {
+
+                    const themeRow =
+                      context.dataset
+                        .themeRow;
+
+                    const result =
+                      themeRow
+                        .personResults[
+                          context.label
+                        ];
+
+                    return [
+
+                      "Tips: " +
+                        formatPercent(
+                          result.prediction
+                        ),
+
+                      "Faktisk: " +
+                        formatPercent(
+                          themeRow
+                            .actualChange
+                        ),
+
+                      "Avstand: " +
+                        formatPercent(
+                          result
+                            .absoluteDistance
+                        ),
+
+                      "Vekt: " +
+                        formatNumber(
+                          themeRow.weight,
+                          1
+                        ) +
+                        "×",
+
+                      "Scorebidrag: " +
+                        formatPercent(
+                          result
+                            .weightedDistance
+                        )
+                    ];
+                  }
+              }
+            }
+          }
+        },
+
+
+        plugins: [
+          stackTotalPlugin
+        ]
+      }
+    );
+
+
+  renderLiveAnalysis(
+    participants,
+    themes
+  );
+}
+
+
+function buildHistoricalResults() {
+
+  return currentHistoryRows
+    .map(row => {
+
+      const result =
+        calculateCompetition(
+
+          currentCompetitionRows,
+          currentParticipants,
+          currentStartRow,
+          row
+        );
+
+
+      const ranks = {};
+      const scores = {};
+
+
+      result.leaderboard.forEach(
+        (entry, index) => {
+
+          ranks[
+            entry.person
+          ] =
+            index + 1;
+
+          scores[
+            entry.person
+          ] =
+            entry.score;
+        }
+      );
+
+
+      return {
+
+        date:
+          row["Dato"],
+
+        ranks,
+        scores
+      };
+    }
+  );
+}
+
+
+function createHistorySection() {
+
+  document.getElementById(
+    "historySection"
+  ).innerHTML = `
+
+    <h2>
+      📈 Championship Race
+    </h2>
+
+    <p>
+      Se hvordan plassering og score
+      har utviklet seg gjennom året.
+    </p>
+
+    <div class="chart-panel">
+
+      <div class="mode-row">
+
+        <button
+          type="button"
+          id="rankModeButton"
+          class="mode-button active">
+
+          Plassering
+
+        </button>
+
+
+        <button
+          type="button"
+          id="scoreModeButton"
+          class="mode-button">
+
+          Score
+
+        </button>
+
+      </div>
+
+
+      <div class="filter-block">
+
+        <div class="filter-title">
+          Deltakere
+        </div>
+
+        <div
+          class="filter-row"
+          id="historyParticipantFilters">
+        </div>
+
+      </div>
+
+
+      <p
+        class="chart-note"
+        id="historySelectionInfo">
+      </p>
+
+
+      <div class="chart-wrap">
+
+        <canvas
+          id="historyChart">
+        </canvas>
+
+      </div>
+
+    </div>
+  `;
+
+
+  selectedHistoryParticipants =
+    new Set(
+      currentParticipants
+    );
+
+
+  document.getElementById(
+    "rankModeButton"
+  ).onclick = () => {
+
+    historyMode =
+      "rank";
+
+    updateHistoryModeButtons();
+    renderHistoryChart();
+  };
+
+
+  document.getElementById(
+    "scoreModeButton"
+  ).onclick = () => {
+
+    historyMode =
+      "score";
+
+    updateHistoryModeButtons();
+    renderHistoryChart();
+  };
+
+
+  renderHistoryFilterButtons();
+  renderHistoryChart();
+}
+
+
+function updateHistoryModeButtons() {
+
+  document.getElementById(
+    "rankModeButton"
+  ).classList.toggle(
+
+    "active",
+
+    historyMode ===
+      "rank"
+  );
+
+
+  document.getElementById(
+    "scoreModeButton"
+  ).classList.toggle(
+
+    "active",
+
+    historyMode ===
+      "score"
+  );
+}
+
+
+function renderHistoryFilterButtons() {
+
+  const container =
+    document.getElementById(
+      "historyParticipantFilters"
+    );
+
+
+  container.innerHTML =
+    "";
+
+
+  container.appendChild(
+
+    createFilterButton(
+
+      "Alle",
+
+      false,
+
+      () => {
+
+        selectedHistoryParticipants =
+          new Set(
+            currentParticipants
+          );
+
+        renderHistoryFilterButtons();
+        renderHistoryChart();
+      },
+
+      true
+    )
+  );
+
+
+  container.appendChild(
+
+    createFilterButton(
+
+      "Ingen",
+
+      false,
+
+      () => {
+
+        selectedHistoryParticipants =
+          new Set();
+
+        renderHistoryFilterButtons();
+        renderHistoryChart();
+      },
+
+      true
+    )
+  );
+
+
+  currentParticipants.forEach(
+    person => {
+
+      container.appendChild(
+
+        createFilterButton(
+
+          person,
+
+          selectedHistoryParticipants
+            .has(person),
+
+          () => {
+
+            if (
+              selectedHistoryParticipants
+                .has(person)
+            ) {
+
+              selectedHistoryParticipants
+                .delete(person);
+
+            } else {
+
+              selectedHistoryParticipants
+                .add(person);
+            }
+
+            renderHistoryFilterButtons();
+            renderHistoryChart();
+          }
+        )
+      );
+    }
+  );
+}
+
+
+function renderHistoryChart() {
+
+  const historical =
+    buildHistoricalResults();
+
+
+  const participants =
+    currentParticipants.filter(
+      person =>
+        selectedHistoryParticipants
+          .has(person)
+    );
+
+
+  document.getElementById(
+    "historySelectionInfo"
+  ).textContent =
+
+    `Visning: ${
+      participants.length
+    } av ${
+      currentParticipants.length
+    } deltakere · ${
+      historical.length
+    } datapunkter.`;
+
+
+  const isRank =
+    historyMode ===
+    "rank";
+
+
+  const datasets =
+    participants.map(
+      person => ({
+
+        label:
+          person,
+
+        data:
+          historical.map(
+            row =>
+              isRank
+                ? row.ranks[
+                    person
+                  ]
+                : row.scores[
+                    person
+                  ] * 100
+          ),
+
+        borderColor:
+          participantColor(
+            person
+          ),
+
+        backgroundColor:
+          participantColor(
+            person
+          ),
+
+        borderWidth: 2,
+
+        pointRadius: 2,
+
+        pointHoverRadius: 5,
+
+        tension: 0.15,
+
+        fill: false
+      })
+    );
+
+
+  if (historyChart) {
+    historyChart.destroy();
+  }
+
+
+  historyChart =
+    new Chart(
+
+      document.getElementById(
+        "historyChart"
+      ),
+
+      {
+
+        type: "line",
+
+        data: {
+
+          labels:
+            historical.map(
+              row =>
+                row.date
+            ),
+
+          datasets
+        },
+
+
+        options: {
+
+          /* Hele presentasjonsrammen skal være statisk under avspilling.
+             Chart.js sin standardanimasjon gjorde at de stiplede estimatlinjene
+             startet på 0 % og "hoppet" opp igjen for hvert nytt historikkpunkt.
+             Avspillingen styres allerede manuelt punkt-for-punkt, så all intern
+             Chart.js-animasjon skal være avslått. */
+          animation: false,
+
+          responsive: true,
+
+          maintainAspectRatio:
+            false,
+
+
+          interaction: {
+            mode: "index",
+            intersect: false
+          },
+
+
+          scales: {
+
+            x: {
+
+              title: {
+                display: true,
+                text: "Dato"
+              },
+
+              ticks: {
+                maxTicksLimit: 12
+              }
+            },
+
+
+            y: {
+
+              reverse:
+                isRank,
+
+              min:
+                isRank
+                  ? 1
+                  : undefined,
+
+              max:
+                isRank
+                  ? currentParticipants
+                      .length
+                  : undefined,
+
+              beginAtZero:
+                !isRank,
+
+              title: {
+
+                display: true,
+
+                text:
+                  isRank
+                    ? "Plassering"
+                    : "Vektet score"
+              },
+
+              ticks: {
+
+                stepSize:
+                  isRank
+                    ? 1
+                    : undefined,
+
+                callback:
+                  value =>
+                    isRank
+                      ? value
+                      : value + "%"
+              }
+            }
+          },
+
+
+          plugins: {
+
+            legend: {
+              position:
+                "bottom"
+            },
+
+
+            tooltip: {
+
+              callbacks: {
+
+                label:
+                  context =>
+
+                    isRank
+
+                      ? `${
+                          context.dataset
+                            .label
+                        }: #${
+                          context.parsed.y
+                        }`
+
+                      : `${
+                          context.dataset
+                            .label
+                        }: ${
+                          formatPercentPoints(
+                            context.parsed.y
+                          )
+                        }`
+              }
+            }
+          }
+        }
+      }
+    );
+}
+
+
+function getSliderRange(
+  themeRow,
+  currentChange
+) {
+
+  const predictions =
+    currentParticipants
+      .map(
+        person =>
+          themeRow
+            .personResults[
+              person
+            ]
+            .prediction
+      )
+      .filter(
+        Number.isFinite
+      );
+
+
+  const values = [
+    0,
+    currentChange,
+    ...predictions
+  ];
+
+
+  const minValue =
+    Math.min(
+      ...values
+    );
+
+  const maxValue =
+    Math.max(
+      ...values
+    );
+
+  const span =
+    Math.max(
+      0.10,
+      maxValue -
+      minValue
+    );
+
+  const padding =
+    Math.max(
+      0.10,
+      span * 0.35
+    );
+
+
+  let min =
+    minValue -
+    padding;
+
+  let max =
+    maxValue +
+    padding;
+
+
+  const type =
+    String(
+      themeRow.type
+    )
+    .trim()
+    .toLowerCase();
+
+
+  if (type === "pris") {
+
+    min =
+      Math.max(
+        -0.95,
+        Math.min(
+          -0.80,
+          min
+        )
+      );
+
+    max =
+      Math.max(
+        2.00,
+        max
+      );
+
+  } else {
+
+    min =
+      Math.min(
+        -0.20,
+        min
+      );
+
+    max =
+      Math.max(
+        0.20,
+        max
+      );
+  }
+
+
+  min =
+    Math.floor(
+      min * 20
+    ) / 20;
+
+  max =
+    Math.ceil(
+      max * 20
+    ) / 20;
+
+
+  return {
+
+    min,
+    max,
+    step: 0.005
+  };
+}
+
+
+function rawValueFromChange(
+  themeRow,
+  change
+) {
+
+  const theme =
+    themeRow.theme;
+
+  const type =
+    String(
+      themeRow.type
+    )
+    .trim()
+    .toLowerCase();
+
+
+  if (type === "pris") {
+
+    return (
+      parseNumber(
+        currentStartRow[
+          theme
+        ]
+      ) *
+      (
+        1 + change
+      )
+    );
+  }
+
+
+  return change * 100;
+}
+
+
+function currentRawValue(
+  themeRow
+) {
+
+  return parseNumber(
+    currentLatestRow[
+      themeRow.theme
+    ]
+  );
+}
+
+
+function buildSimulatedStatusRow() {
+
+  const row = {
+    ...currentLatestRow
+  };
+
+
+  currentThemeResults.forEach(
+    themeRow => {
+
+      row[
+        themeRow.theme
+      ] =
+
+        rawValueFromChange(
+
+          themeRow,
+
+          simulationChanges[
+            themeRow.theme
+          ]
+        );
+    }
+  );
+
+
+  return row;
+}
+
+
+function getSimulatedResult() {
+
+  return calculateCompetition(
+
+    currentCompetitionRows,
+    currentParticipants,
+    currentStartRow,
+    buildSimulatedStatusRow()
+  );
+}
+
+
+function initializeSimulation() {
+
+  simulationChanges = {};
+
+
+  currentThemeResults.forEach(
+    row => {
+
+      simulationChanges[
+        row.theme
+      ] =
+        row.actualChange;
+    }
+  );
+}
+
+
+function createSimulatorSection() {
+
+  initializeSimulation();
+
+
+  document.getElementById(
+    "simulatorSection"
+  ).innerHTML = `
+
+    <h2>
+      🔮 Hva hvis?
+    </h2>
+
+    <p>
+      Flytt temaene og se hvordan
+      et mulig sluttresultat påvirker
+      konkurransen.
+      Den offisielle stillingen over
+      endres ikke.
+    </p>
+
+    <div class="sim-panel">
+
+      <div class="sim-intro">
+        <div>
+          <strong>🧪 Scenarioverksted</strong>
+          <span>Lek med sluttverdiene. Live-stillingen påvirkes ikke.</span>
+        </div>
+      </div>
+
+      ${
+        currentSimulatorStatus === "CLOSED"
+          ? `
+            <div class="lock-banner">
+              <strong>🔒 Scenarioverkstedet er midlertidig stengt</strong>
+              Årets sluttresultater holdes hemmelige frem til finalen.
+              Siste publiserte status vises fortsatt i dashboardet.
+            </div>
+          `
+          : ""
+      }
+
+      <div class="sim-summary">
+
+        <div>
+
+          <strong>
+            Scenario:
+          </strong>
+
+          <span
+            id="simChangedCount">
+
+            0 endrede temaer
+
+          </span>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="reset-button"
+          id="resetSimulation">
+
+          ↺ Nullstill til dagens status
+
+        </button>
+
+      </div>
+
+
+      <div
+        class="sim-grid"
+        id="simControls">
+      </div>
+
+
+      <hr class="section-divider">
+
+
+      <h3>
+        Simulert leaderboard
+      </h3>
+
+      <p class="muted">
+        Pilene viser endring fra
+        den offisielle
+        live-plasseringen.
+      </p>
+
+
+      <div id="simLeaderboard"></div>
+
+      <div id="simAnalysis"></div>
+
+
+      <hr class="section-divider">
+
+
+      <div class="mode-row">
+
+        <button
+          type="button"
+          id="simChartModeButton"
+          class="mode-button active">
+
+          Simulert
+
+        </button>
+
+
+        <button
+          type="button"
+          id="liveChartModeButton"
+          class="mode-button">
+
+          Live
+
+        </button>
+
+      </div>
+
+
+      <div class="chart-wrap">
+
+        <canvas
+          id="simChart">
+        </canvas>
+
+      </div>
+
+    </div>
+  `;
+
+
+  document.getElementById(
+    "resetSimulation"
+  ).disabled =
+    currentSimulatorStatus ===
+    "CLOSED";
+
+
+  document.getElementById(
+    "resetSimulation"
+  ).onclick = () => {
+
+    initializeSimulation();
+    renderSimulatorControls();
+    updateSimulationOutputs();
+  };
+
+
+  document.getElementById(
+    "simChartModeButton"
+  ).onclick = () => {
+
+    simChartMode =
+      "sim";
+
+    updateSimChartModeButtons();
+    renderSimulatorChart();
+  };
+
+
+  document.getElementById(
+    "liveChartModeButton"
+  ).onclick = () => {
+
+    simChartMode =
+      "live";
+
+    updateSimChartModeButtons();
+    renderSimulatorChart();
+  };
+
+
+  renderSimulatorControls();
+  updateSimulationOutputs();
+}
+
+
+function renderSimulatorControls() {
+
+  const container =
+    document.getElementById(
+      "simControls"
+    );
+
+
+  container.innerHTML =
+    "";
+
+
+  currentThemeResults.forEach(
+    themeRow => {
+
+      const current =
+        themeRow.actualChange;
+
+      const simulated =
+        simulationChanges[
+          themeRow.theme
+        ];
+
+      const range =
+        getSliderRange(
+          themeRow,
+          current
+        );
+
+
+      const startPosition =
+        clamp(
+
+          (
+            0 -
+            range.min
+          ) /
+          (
+            range.max -
+            range.min
+          ) *
+          100,
+
+          0,
+          100
+        );
+
+
+      const currentPosition =
+        clamp(
+
+          (
+            current -
+            range.min
+          ) /
+          (
+            range.max -
+            range.min
+          ) *
+          100,
+
+          0,
+          100
+        );
+
+
+      const changed =
+        Math.abs(
+          simulated -
+          current
+        ) >
+        0.00001;
+
+
+      const card =
+        document.createElement(
+          "div"
+        );
+
+
+      card.className =
+        "sim-card" +
+        (
+          changed
+            ? " scenario-changed"
+            : ""
+        );
+
+
+      const isPrice =
+        String(
+          themeRow.type
+        )
+        .trim()
+        .toLowerCase() ===
+        "pris";
+
+
+      const startRaw =
+        parseNumber(
+          currentStartRow[
+            themeRow.theme
+          ]
+        );
+
+
+      const nowRaw =
+        currentRawValue(
+          themeRow
+        );
+
+
+      const simulatedRaw =
+        rawValueFromChange(
+          themeRow,
+          simulated
+        );
+
+
+      card.innerHTML = `
+
+        <div class="sim-head">
+
+          <div>
+
+            <div class="sim-theme">
+              ${themeRow.theme}
+            </div>
+
+            <div class="sim-weight">
+              Vekt
+              ${formatNumber(
+                themeRow.weight,
+                1
+              )}×
+              ·
+              ${themeRow.type}
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="sim-values">
+
+          <div class="sim-value-box">
+
+            <div class="sim-value-label">
+              Start
+            </div>
+
+            <div class="sim-value-main">
+
+              ${
+                isPrice
+                  ? formatNumber(
+                      startRaw,
+                      2
+                    )
+                  : "0,00%"
+              }
+
+            </div>
+
+          </div>
+
+
+          <div class="sim-value-box">
+
+            <div class="sim-value-label">
+              Dagens status
+            </div>
+
+            <div class="sim-value-main">
+
+              ${
+                isPrice
+                  ? formatNumber(
+                      nowRaw,
+                      2
+                    ) +
+                    " · "
+                  : ""
+              }
+
+              ${
+                formatPercent(
+                  current
+                )
+              }
+
+            </div>
+
+          </div>
+
+
+          <div class="sim-value-box">
+
+            <div class="sim-value-label">
+              Simulert
+            </div>
+
+            <div
+              class="sim-value-main"
+              id="sim-display-${safeId(
+                themeRow.theme
+              )}">
+
+              ${
+                isPrice
+                  ? formatNumber(
+                      simulatedRaw,
+                      2
+                    ) +
+                    " · "
+                  : ""
+              }
+
+              ${
+                formatPercent(
+                  simulated
+                )
+              }
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="slider-shell">
+
+          <div
+            class="slider-marker start"
+            style="left:${startPosition}%">
+
+            START 0%
+
+          </div>
+
+
+          <div
+            class="slider-marker current"
+            style="left:${currentPosition}%">
+
+            NÅ
+            ${
+              formatPercent(
+                current,
+                1
+              )
+            }
+
+          </div>
+
+
+          <input
+            class="sim-slider"
+            id="slider-${safeId(
+              themeRow.theme
+            )}"
+            type="range"
+            min="${range.min}"
+            max="${range.max}"
+            step="${range.step}"
+            value="${simulated}">
+
+
+          <div class="sim-range-labels">
+
+            <span>
+              ${
+                formatPercent(
+                  range.min,
+                  0
+                )
+              }
+            </span>
+
+            <span>
+              ${
+                formatPercent(
+                  range.max,
+                  0
+                )
+              }
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="sim-input-row">
+
+          <label
+            for="input-${safeId(
+              themeRow.theme
+            )}">
+
+            Simulert utvikling:
+
+          </label>
+
+
+          <input
+            class="sim-number"
+            id="input-${safeId(
+              themeRow.theme
+            )}"
+            type="number"
+            step="0.5"
+            value="${
+              (
+                simulated *
+                100
+              ).toFixed(1)
+            }">
+
+
+          <span class="sim-unit">
+            %
+          </span>
+
+        </div>
+      `;
+
+
+      container.appendChild(
+        card
+      );
+
+
+      if (
+        currentSimulatorStatus ===
+        "CLOSED"
+      ) {
+
+        card
+          .querySelectorAll(
+            "input"
+          )
+          .forEach(
+            input =>
+              input.disabled = true
+          );
+      }
+
+
+      const slider =
+        card.querySelector(
+          `#slider-${safeId(
+            themeRow.theme
+          )}`
+        );
+
+
+      const input =
+        card.querySelector(
+          `#input-${safeId(
+            themeRow.theme
+          )}`
+        );
+
+
+      const applyChange =
+        value => {
+
+          if (
+            currentSimulatorStatus ===
+            "CLOSED"
+          ) {
+            return;
+          }
+
+          simulationChanges[
+            themeRow.theme
+          ] =
+            value;
+
+
+          input.value =
+            (
+              value *
+              100
+            )
+            .toFixed(1);
+
+
+          const raw =
+            rawValueFromChange(
+              themeRow,
+              value
+            );
+
+
+          card.querySelector(
+            `#sim-display-${safeId(
+              themeRow.theme
+            )}`
+          ).textContent =
+
+            (
+              isPrice
+                ? formatNumber(
+                    raw,
+                    2
+                  ) +
+                  " · "
+                : ""
+            ) +
+
+            formatPercent(
+              value
+            );
+
+
+          card.classList.toggle(
+
+            "scenario-changed",
+
+            Math.abs(
+              value -
+              current
+            ) >
+            0.00001
+          );
+
+
+          updateSimulationOutputs();
+        };
+
+
+      slider.oninput =
+        () => {
+
+          applyChange(
+            parseFloat(
+              slider.value
+            )
+          );
+        };
+
+
+      input.onchange =
+        () => {
+
+          let value =
+            parseFloat(
+              input.value
+            ) /
+            100;
+
+
+          if (
+            !Number.isFinite(
+              value
+            )
+          ) {
+
+            value =
+              current;
+          }
+
+
+          value =
+            clamp(
+
+              value,
+
+              range.min,
+              range.max
+            );
+
+
+          slider.value =
+            value;
+
+
+          applyChange(
+            value
+          );
+        };
+    }
+  );
+}
+
+
+function safeId(text) {
+
+  return String(text)
+    .replace(
+      /[^a-zA-Z0-9_-]/g,
+      "_"
+    );
+}
+
+
+function officialRankMap() {
+
+  const map = {};
+
+
+  currentOfficialResult
+    .leaderboard
+    .forEach(
+      (entry, index) => {
+
+        map[
+          entry.person
+        ] =
+          index + 1;
+      }
+    );
+
+
+  return map;
+}
+
+
+function movementHtml(
+  person,
+  newRank
+) {
+
+  const oldRank =
+    officialRankMap()[
+      person
+    ];
+
+
+  const delta =
+    oldRank -
+    newRank;
+
+
+  if (delta > 0) {
+
+    return `
+
+      <span class="movement-up">
+        ↑${delta}
+      </span>
+    `;
+  }
+
+
+  if (delta < 0) {
+
+    return `
+
+      <span class="movement-down">
+        ↓${Math.abs(delta)}
+      </span>
+    `;
+  }
+
+
+  return `
+
+    <span class="movement-same">
+      —
+    </span>
+  `;
+}
+
+
+function renderSimLeaderboard(
+  result
+) {
+
+  let html = `
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Plass</th>
+            <th>Deltaker</th>
+            <th>Simulert score</th>
+            <th>Fra live</th>
+          </tr>
+
+        </thead>
+
+        <tbody>
+  `;
+
+
+  result.leaderboard
+    .forEach(
+      (entry, index) => {
+
+        const rank =
+          index + 1;
+
+
+        html += `
+
+          <tr class="${
+            index === 0
+              ? "rank-1 top-rank-1"
+              : index === 1
+                ? "top-rank-2"
+                : index === 2
+                  ? "top-rank-3"
+                  : ""
+          }">
+
+            <td>
+              ${rank}
+            </td>
+
+            <td>
+              <span class="participant-cell">
+                ${avatarHtml(
+                  entry.person,
+                  "avatar-sm"
+                )}
+                <span>
+                  ${entry.person}
+                </span>
+              </span>
+            </td>
+
+            <td>
+              ${formatPercent(
+                entry.score
+              )}
+            </td>
+
+            <td>
+              <span class="rank-change">
+                <span class="rank-old">${officialRankMap()[entry.person]}</span>
+                <span class="rank-arrow">→</span>
+                <span class="rank-new">${rank}</span>
+                ${movementHtml(
+                  entry.person,
+                  rank
+                )}
+              </span>
+            </td>
+
+          </tr>
+        `;
+      }
+    );
+
+
+  html += `
+
+        </tbody>
+      </table>
+    </div>
+  `;
+
+
+  document.getElementById(
+    "simLeaderboard"
+  ).innerHTML = html;
+}
+
+
+function updateSimChartModeButtons() {
+
+  document.getElementById(
+    "simChartModeButton"
+  ).classList.toggle(
+
+    "active",
+
+    simChartMode ===
+      "sim"
+  );
+
+
+  document.getElementById(
+    "liveChartModeButton"
+  ).classList.toggle(
+
+    "active",
+
+    simChartMode ===
+      "live"
+  );
+}
+
+
+function renderSimulatorChart() {
+
+  const result =
+    simChartMode ===
+      "sim"
+
+      ? getSimulatedResult()
+
+      : currentOfficialResult;
+
+
+  if (simChart) {
+    simChart.destroy();
+  }
+
+
+  simChart =
+    new Chart(
+
+      document.getElementById(
+        "simChart"
+      ),
+
+      {
+
+        type: "bar",
+
+        data: {
+
+          labels:
+            currentParticipants,
+
+          datasets:
+            stackedDatasets(
+              result.themeResults,
+              currentParticipants
+            )
+        },
+
+
+        options: {
+
+          responsive: true,
+
+          maintainAspectRatio:
+            false,
+
+
+          scales: {
+
+            x: {
+              stacked: true
+            },
+
+            y: {
+
+              stacked: true,
+
+              beginAtZero: true,
+
+              title: {
+
+                display: true,
+
+                text:
+                  simChartMode ===
+                    "sim"
+
+                    ? "Simulert vektet %-avstand"
+
+                    : "Live vektet %-avstand"
+              },
+
+              ticks: {
+
+                callback:
+                  value =>
+                    value + "%"
+              }
+            }
+          },
+
+
+          plugins: {
+
+            legend: {
+              position:
+                "bottom"
+            },
+
+
+            tooltip: {
+
+              callbacks: {
+
+                label:
+                  context => {
+
+                    const themeRow =
+                      context.dataset
+                        .themeRow;
+
+                    return (
+                      themeRow.theme +
+                      ": " +
+                      formatPercent(
+                        themeRow
+                          .personResults[
+                            context.label
+                          ]
+                          .weightedDistance
+                      )
+                    );
+                  }
+              }
+            }
+          }
+        },
+
+
+        plugins: [
+          stackTotalPlugin
+        ]
+      }
+    );
+}
+
+
+function updateSimulationOutputs() {
+
+  const result =
+    getSimulatedResult();
+
+
+  renderSimLeaderboard(
+    result
+  );
+
+  renderSimulatorAnalysis(
+    result
+  );
+
+
+  const changed =
+    currentThemeResults
+      .filter(
+        row =>
+
+          Math.abs(
+
+            simulationChanges[
+              row.theme
+            ] -
+
+            row.actualChange
+
+          ) >
+          0.00001
+      )
+      .length;
+
+
+  document.getElementById(
+    "simChangedCount"
+  ).textContent =
+
+    `${changed} endrede tema${
+      changed === 1
+        ? ""
+        : "er"
+    }`;
+
+
+  renderSimulatorChart();
+}
+
+
+
+function themeHistoryPoints(
+  themeRow
+) {
+
+  const competitionRow =
+    currentCompetitionRows.find(
+      row =>
+        row["TEMA"] ===
+        themeRow.theme
+    );
+
+  return currentHistoryRows.map(
+    row => ({
+
+      date:
+        row["Dato"],
+
+      change:
+        calculateActualChange(
+          competitionRow,
+          currentStartRow,
+          row
+        ),
+
+      raw:
+        parseNumber(
+          row[
+            themeRow.theme
+          ]
+        )
+    })
+  );
+}
+
+
+function closestParticipantToChange(
+  themeRow,
+  change
+) {
+
+  return currentParticipants
+    .map(
+      person => ({
+
+        person,
+
+        distance:
+          Math.abs(
+            themeRow
+              .personResults[
+                person
+              ]
+              .prediction -
+            change
+          )
+      })
+    )
+    .sort(
+      (a, b) =>
+        a.distance -
+        b.distance
+    )[0];
+}
+
+
+function renderTrendFilterButtons() {
+
+  const container =
+    document.getElementById(
+      "themeTrendFilters"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML =
+    "";
+
+
+  container.appendChild(
+
+    createFilterButton(
+
+      "Alle",
+
+      false,
+
+      () => {
+
+        stopThemeTrendAnimation();
+
+        themeTrendSimulationMode = false;
+
+        selectedTrendThemes =
+          new Set(
+            currentThemeResults.map(
+              row =>
+                row.theme
+            )
+          );
+
+        themeTrendVisiblePoints =
+          null;
+
+        renderTrendFilterButtons();
+        renderThemeTrendChart();
+      },
+
+      true
+    )
+  );
+
+
+  container.appendChild(
+
+    createFilterButton(
+
+      "Ingen",
+
+      false,
+
+      () => {
+
+        stopThemeTrendAnimation();
+
+        selectedTrendThemes =
+          new Set();
+
+        themeTrendVisiblePoints =
+          themeTrendSimulationMode
+            ? 0
+            : null;
+
+        renderTrendFilterButtons();
+        renderThemeTrendChart();
+      },
+
+      true
+    )
+  );
+
+
+  container.appendChild(
+
+    createFilterButton(
+
+      "🎬 Simulering",
+
+      themeTrendSimulationMode,
+
+      () => {
+
+        stopThemeTrendAnimation();
+
+        themeTrendSimulationMode =
+          !themeTrendSimulationMode;
+
+        /*
+          I presentasjonsmodus skal ingen faktisk utvikling røpes før
+          brukeren trykker Spill av. Dersom flere temaer allerede er valgt,
+          rydder vi derfor utvalget og lar brukeren velge ett tema på nytt.
+        */
+        if (themeTrendSimulationMode) {
+          selectedTrendThemes =
+            new Set();
+          themeTrendVisiblePoints = 0;
+        } else {
+          themeTrendVisiblePoints = null;
+        }
+
+        renderTrendFilterButtons();
+        renderThemeTrendChart();
+      }
+    )
+  );
+
+
+  currentThemeResults.forEach(
+    row => {
+
+      container.appendChild(
+
+        createFilterButton(
+
+          row.theme,
+
+          selectedTrendThemes
+            .has(row.theme),
+
+          () => {
+
+            stopThemeTrendAnimation();
+
+            if (themeTrendSimulationMode) {
+
+              /* Presentasjonsmodus viser kun ett tema om gangen. */
+              if (
+                selectedTrendThemes
+                  .has(row.theme)
+              ) {
+                selectedTrendThemes =
+                  new Set();
+              } else {
+                selectedTrendThemes =
+                  new Set([row.theme]);
+              }
+
+              /* 0 betyr: faste akser + estimatlinjer, men ingen fasitkurve. */
+              themeTrendVisiblePoints = 0;
+
+            } else {
+
+              if (
+                selectedTrendThemes
+                  .has(row.theme)
+              ) {
+
+                selectedTrendThemes
+                  .delete(row.theme);
+
+              } else {
+
+                selectedTrendThemes
+                  .add(row.theme);
+              }
+
+              themeTrendVisiblePoints =
+                null;
+            }
+
+            renderTrendFilterButtons();
+            renderThemeTrendChart();
+          }
+        )
+      );
+    }
+  );
+}
+
+
+function stopThemeTrendAnimation() {
+
+  if (themeTrendTimer) {
+    clearInterval(
+      themeTrendTimer
+    );
+  }
+
+  themeTrendTimer =
+    null;
+
+  themeTrendIsPlaying =
+    false;
+}
+
+
+function themeTrendSpeedMs() {
+
+  const speed =
+    document.getElementById(
+      "themeTrendSpeed"
+    );
+
+  const mode =
+    speed
+      ? speed.value
+      : "normal";
+
+  const totalMs =
+    mode === "slow"
+      ? 9000
+      : mode === "fast"
+        ? 3500
+        : 6000;
+
+  return Math.max(
+    120,
+    Math.round(
+      totalMs /
+      Math.max(
+        1,
+        currentHistoryRows.length -
+        1
+      )
+    )
+  );
+}
+
+
+
+function updateThemeTrendPlaybackFrame() {
+
+  if (!themeTrendChart) {
+    return;
+  }
+
+  const themes =
+    currentThemeResults.filter(
+      row =>
+        selectedTrendThemes
+          .has(row.theme)
+    );
+
+  if (themes.length !== 1) {
+    return;
+  }
+
+  const themeRow = themes[0];
+
+  const points =
+    themeHistoryPoints(
+      themeRow
+    );
+
+  const visibleCount =
+    Math.max(
+      0,
+      Math.min(
+        themeTrendVisiblePoints ?? 0,
+        points.length
+      )
+    );
+
+  /*
+    Viktig for presentasjonsmodus:
+    Chart-instansen beholdes uendret gjennom hele avspillingen.
+    Akser, labels og deltakernes estimatlinjer tegnes derfor bare én gang.
+    På hvert steg oppdateres KUN datasettet for den faktiske temakurven.
+  */
+  const actualDataset =
+    themeTrendChart.data.datasets.find(
+      dataset =>
+        dataset.kind === "actual"
+    );
+
+  if (!actualDataset) {
+    return;
+  }
+
+  actualDataset.data =
+    points.map(
+      (point, index) =>
+        index < visibleCount
+          ? point.change * 100
+          : null
+    );
+
+  /*
+    "none" er avgjørende her: ingen Chart.js-animasjon skal trigges når
+    neste datapunkt legges til. Dermed kan estimatlinjene ikke hoppe fra 0.
+  */
+  themeTrendChart.update("none");
+
+  updateThemeTrendPlaybackButtons();
+  renderThemeTrendAnalysis(themes);
+}
+
+
+function startThemeTrendAnimation(
+  restart = false
+) {
+
+  const themes =
+    currentThemeResults.filter(
+      row =>
+        selectedTrendThemes
+          .has(row.theme)
+    );
+
+  if (
+    themes.length !== 1
+  ) {
+    return;
+  }
+
+  stopThemeTrendAnimation();
+
+  if (
+    restart ||
+    !themeTrendVisiblePoints ||
+    themeTrendVisiblePoints >=
+      currentHistoryRows.length
+  ) {
+
+    themeTrendVisiblePoints =
+      1;
+  }
+
+  themeTrendIsPlaying =
+    true;
+
+  renderThemeTrendChart();
+
+
+  themeTrendTimer =
+    setInterval(
+      () => {
+
+        themeTrendVisiblePoints +=
+          1;
+
+        if (
+          themeTrendVisiblePoints >=
+          currentHistoryRows.length
+        ) {
+
+          themeTrendVisiblePoints =
+            currentHistoryRows.length;
+
+          stopThemeTrendAnimation();
+        }
+
+        updateThemeTrendPlaybackFrame();
+
+      },
+      themeTrendSpeedMs()
+    );
+}
+
+
+function renderThemeTrendAnalysis(
+  themes
+) {
+
+  const box =
+    document.getElementById(
+      "themeTrendAnalysis"
+    );
+
+  if (!box) {
+    return;
+  }
+
+
+  if (!themes.length) {
+
+    box.innerHTML = `
+      <div class="analysis-box">
+        <div class="analysis-content">
+          <div class="analysis-title">
+            💬 Kommentar
+          </div>
+          <p class="analysis-text">
+            Velg minst ett tema for å se utviklingen.
+          </p>
+        </div>
+      </div>
+    `;
+
+    return;
+  }
+
+
+  if (
+    themeTrendSimulationMode &&
+    themes.length === 1 &&
+    themeTrendVisiblePoints === 0
+  ) {
+
+    box.innerHTML = `
+      <div class="analysis-box">
+        <div class="analysis-content">
+          <div class="analysis-title">
+            🎬 Klar for simulering
+          </div>
+          <p class="analysis-text">
+            Estimatene ligger klare. Trykk Spill av utvikling for å avsløre årets faktiske utvikling.
+          </p>
+        </div>
+      </div>
+    `;
+
+    return;
+  }
+
+
+  if (
+    themes.length === 1 &&
+    themeTrendIsPlaying
+  ) {
+
+    box.innerHTML = `
+      <div class="analysis-box">
+        <div class="analysis-content">
+          <div class="analysis-title">
+            🎬 Avspilling pågår
+          </div>
+          <p class="analysis-text">
+            Kommentaren og hvem som er nærmest avsløres når utviklingen er ferdig.
+          </p>
+        </div>
+      </div>
+    `;
+
+    return;
+  }
+
+
+  if (
+    themes.length === 1 &&
+    themeTrendVisiblePoints !== null &&
+    themeTrendVisiblePoints <
+      currentHistoryRows.length
+  ) {
+
+    box.innerHTML = `
+      <div class="analysis-box">
+        <div class="analysis-content">
+          <div class="analysis-title">
+            ⏸ Avspilling pauset
+          </div>
+          <p class="analysis-text">
+            Fortsett avspillingen for å få hele kommentaren.
+          </p>
+        </div>
+      </div>
+    `;
+
+    return;
+  }
+
+
+  if (themes.length === 1) {
+
+    const themeRow =
+      themes[0];
+
+    const points =
+      themeHistoryPoints(
+        themeRow
+      );
+
+    const changes =
+      points.map(
+        point =>
+          point.change
+      );
+
+    const maxChange =
+      Math.max(
+        ...changes
+      );
+
+    const minChange =
+      Math.min(
+        ...changes
+      );
+
+    const maxIndex =
+      changes.indexOf(
+        maxChange
+      );
+
+    const minIndex =
+      changes.indexOf(
+        minChange
+      );
+
+    const latest =
+      changes[
+        changes.length -
+        1
+      ];
+
+    const closestNow =
+      closestParticipantToChange(
+        themeRow,
+        latest
+      );
+
+    const closestAtPeak =
+      closestParticipantToChange(
+        themeRow,
+        maxChange
+      );
+
+
+    let largestMove =
+      {
+        size: 0,
+        from: 0,
+        to: 0,
+        index: 0
+      };
+
+    for (
+      let i = 1;
+      i < changes.length;
+      i++
+    ) {
+
+      const move =
+        changes[i] -
+        changes[i - 1];
+
+      if (
+        Math.abs(move) >
+        Math.abs(
+          largestMove.size
+        )
+      ) {
+
+        largestMove = {
+          size: move,
+          from:
+            changes[i - 1],
+          to:
+            changes[i],
+          index: i
+        };
+      }
+    }
+
+
+    let movementText =
+      `${themeRow.theme} står nå i ${formatPercent(latest)} siden konkurransestart. ` +
+      `Høyeste registrerte nivå var ${formatPercent(maxChange)} ` +
+      `(${points[maxIndex].date}), mens laveste var ${formatPercent(minChange)} ` +
+      `(${points[minIndex].date}).`;
+
+    if (
+      Math.abs(
+        largestMove.size
+      ) >
+      0.0001
+    ) {
+
+      movementText +=
+        ` Den største endringen mellom to registrerte statuspunkter var ` +
+        `${formatPercent(Math.abs(largestMove.size))} ` +
+        `${largestMove.size >= 0 ? "opp" : "ned"} frem til ${points[largestMove.index].date}.`;
+    }
+
+
+    let estimateText =
+      `${closestNow.person} er nærmest dagens nivå, ` +
+      `${formatPercent(closestNow.distance)} unna sitt estimat.`;
+
+    if (
+      closestAtPeak.person !==
+      closestNow.person
+    ) {
+
+      estimateText +=
+        ` Rundt årets høyeste registrerte nivå var ${closestAtPeak.person} nærmest.`;
+    }
+
+
+    box.innerHTML = `
+      <div class="analysis-box">
+
+        ${avatarHtml(
+          closestNow.person,
+          "avatar-md"
+        )}
+
+        <div class="analysis-content">
+
+          <div class="analysis-title">
+            💬 Kommentar til ${themeRow.theme}
+          </div>
+
+          <p class="analysis-text">
+            ${movementText}
+          </p>
+
+          <p class="analysis-text">
+            ${estimateText}
+          </p>
+
+        </div>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  const stats =
+    themes.map(
+      themeRow => {
+
+        const points =
+          themeHistoryPoints(
+            themeRow
+          );
+
+        const values =
+          points.map(
+            point =>
+              point.change
+          );
+
+        return {
+          theme:
+            themeRow.theme,
+          latest:
+            values[
+              values.length -
+              1
+            ],
+          range:
+            Math.max(
+              ...values
+            ) -
+            Math.min(
+              ...values
+            )
+        };
+      }
+    );
+
+
+  const strongest =
+    [...stats].sort(
+      (a, b) =>
+        b.latest -
+        a.latest
+    )[0];
+
+  const weakest =
+    [...stats].sort(
+      (a, b) =>
+        a.latest -
+        b.latest
+    )[0];
+
+  const volatile =
+    [...stats].sort(
+      (a, b) =>
+        b.range -
+        a.range
+    )[0];
+
+
+  box.innerHTML = `
+    <div class="analysis-box">
+      <div class="analysis-content">
+
+        <div class="analysis-title">
+          💬 Kommentar til valgte temaer
+        </div>
+
+        <p class="analysis-text">
+          ${strongest.theme} har sterkest utvikling blant de valgte temaene
+          med ${formatPercent(strongest.latest)}, mens ${weakest.theme}
+          ligger lavest med ${formatPercent(weakest.latest)}.
+          ${volatile.theme} har hatt størst spenn mellom høyeste og laveste
+          registrerte nivå, ${formatPercent(volatile.range)}.
+        </p>
+
+      </div>
+    </div>
+  `;
+}
+
+
+function renderThemeTrendChart() {
+
+  const canvas =
+    document.getElementById(
+      "themeTrendChart"
+    );
+
+  if (!canvas) {
+    return;
+  }
+
+
+  const themes =
+    currentThemeResults.filter(
+      row =>
+        selectedTrendThemes
+          .has(row.theme)
+    );
+
+
+  const controls =
+    document.getElementById(
+      "themeTrendPlayback"
+    );
+
+  if (controls) {
+
+    controls.style.display =
+      themes.length === 1
+        ? "flex"
+        : "none";
+  }
+
+
+  const selectionInfo =
+    document.getElementById(
+      "themeTrendSelectionInfo"
+    );
+
+  if (selectionInfo) {
+
+    selectionInfo.textContent =
+      themeTrendSimulationMode
+        ? (
+            themes.length === 1
+              ? `🎬 Simulering: ${themes[0].theme}. Estimatlinjene er faste; fasitkurven avsløres først ved avspilling.`
+              : "🎬 Simulering er aktiv. Velg ett tema for å gjøre presentasjonen klar."
+          )
+        : (
+            `Visning: ${themes.length} av ${currentThemeResults.length} temaer. ` +
+            (
+              themes.length === 1
+                ? "Deltakernes estimater vises som stiplede mållinjer."
+                : "Velg ett tema for å vise deltakernes estimater og avspillingsmodus."
+            )
+          );
+  }
+
+
+  if (themeTrendChart) {
+    themeTrendChart.destroy();
+  }
+
+
+  const visibleCount =
+    themes.length === 1 &&
+    themeTrendVisiblePoints !== null
+      ? Math.max(
+          0,
+          Math.min(
+            themeTrendVisiblePoints,
+            currentHistoryRows.length
+          )
+        )
+      : currentHistoryRows.length;
+
+
+  /* X-aksen skal være statisk under avspilling. Hele perioden vises fra start,
+     mens selve temakurven gradvis fylles inn med nye datapunkter. */
+  const labels =
+    currentHistoryRows
+      .map(
+        row =>
+          row["Dato"]
+      );
+
+
+  const datasets = [];
+
+
+  themes.forEach(
+    themeRow => {
+
+      const points =
+        themeHistoryPoints(
+          themeRow
+        );
+
+      datasets.push({
+
+        label:
+          themeRow.theme,
+
+        data:
+          points.map(
+            (point, index) =>
+              index < visibleCount
+                ? point.change * 100
+                : null
+          ),
+
+        borderColor:
+          themeColor(
+            themeRow.theme
+          ),
+
+        backgroundColor:
+          themeColor(
+            themeRow.theme
+          ),
+
+        borderWidth:
+          themes.length === 1
+            ? 3
+            : 2,
+
+        pointRadius:
+          themes.length === 1
+            ? 2
+            : 1,
+
+        pointHoverRadius: 5,
+
+        tension: 0.15,
+
+        fill: false,
+
+        kind: "actual",
+        themeRow,
+        rawPoints: points
+      });
+    }
+  );
+
+
+  if (themes.length === 1) {
+
+    const themeRow =
+      themes[0];
+
+    currentParticipants.forEach(
+      person => {
+
+        const prediction =
+          themeRow
+            .personResults[
+              person
+            ]
+            .prediction *
+          100;
+
+        datasets.push({
+
+          label:
+            `${person} ${formatPercent(
+              themeRow
+                .personResults[
+                  person
+                ]
+                .prediction,
+              1
+            )}`,
+
+          data:
+            labels.map(
+              () =>
+                prediction
+            ),
+
+          borderColor:
+            participantColor(
+              person
+            ),
+
+          backgroundColor:
+            participantColor(
+              person
+            ),
+
+          borderWidth: 1.3,
+
+          borderDash: [
+            6,
+            5
+          ],
+
+          pointRadius: 0,
+
+          tension: 0,
+
+          fill: false,
+
+          kind: "estimate",
+          person,
+          themeRow
+        });
+      }
+    );
+  }
+
+
+  /* Presentasjonsmodus: både akser og estimatlinjer skal være helt faste.
+     Beregn derfor Y-området fra HELE temahistorikken + alle estimater, ikke bare
+     fra punktene som hittil er synlige i avspillingen. */
+  const allTrendValues = [];
+
+  themes.forEach(themeRow => {
+    themeHistoryPoints(themeRow).forEach(point => {
+      if (Number.isFinite(point.change)) {
+        allTrendValues.push(point.change * 100);
+      }
+    });
+  });
+
+  if (themes.length === 1) {
+    const themeRow = themes[0];
+    currentParticipants.forEach(person => {
+      const prediction = themeRow.personResults[person].prediction * 100;
+      if (Number.isFinite(prediction)) {
+        allTrendValues.push(prediction);
+      }
+    });
+  }
+
+  allTrendValues.push(0);
+
+  const trendMin = Math.min(...allTrendValues);
+  const trendMax = Math.max(...allTrendValues);
+  const trendSpan = Math.max(1, trendMax - trendMin);
+  const trendPadding = Math.max(2, trendSpan * 0.08);
+  const fixedTrendYMin = Math.floor((trendMin - trendPadding) / 5) * 5;
+  const fixedTrendYMax = Math.ceil((trendMax + trendPadding) / 5) * 5;
+
+
+  themeTrendChart =
+    new Chart(
+      canvas,
+      {
+        type: "line",
+
+        data: {
+          labels,
+          datasets
+        },
+
+        options: {
+
+          /*
+            Avspillingen styres manuelt. Chart.js skal aldri animere hele
+            grafen eller de faste estimatlinjene mellom datapunktene.
+          */
+          animation: false,
+
+          responsive: true,
+
+          maintainAspectRatio:
+            false,
+
+          interaction: {
+            mode: "index",
+            intersect: false
+          },
+
+          scales: {
+
+            x: {
+              title: {
+                display: true,
+                text: "Dato"
+              },
+              ticks: {
+                maxTicksLimit: 12
+              }
+            },
+
+            y: {
+              min: fixedTrendYMin,
+              max: fixedTrendYMax,
+              title: {
+                display: true,
+                text:
+                  "Utvikling fra start"
+              },
+              ticks: {
+                callback:
+                  value =>
+                    value + "%"
+              }
+            }
+          },
+
+          plugins: {
+
+            legend: {
+              position: "bottom"
+            },
+
+            tooltip: {
+
+              callbacks: {
+
+                label:
+                  context => {
+
+                    const dataset =
+                      context.dataset;
+
+                    if (
+                      dataset.kind ===
+                      "estimate"
+                    ) {
+
+                      return `${dataset.person}: ${formatPercentPoints(context.parsed.y)}`;
+                    }
+
+                    const rawPoint =
+                      dataset.rawPoints[
+                        context.dataIndex
+                      ];
+
+                    const isPrice =
+                      String(
+                        dataset
+                          .themeRow
+                          .type
+                      )
+                      .trim()
+                      .toLowerCase() ===
+                      "pris";
+
+                    return (
+                      `${dataset.label}: ${formatPercentPoints(context.parsed.y)}` +
+                      (
+                        isPrice &&
+                        Number.isFinite(
+                          rawPoint.raw
+                        )
+                          ? ` · verdi ${formatNumber(rawPoint.raw, 2)}`
+                          : ""
+                      )
+                    );
+                  }
+              }
+            }
+          }
+        }
+      }
+    );
+
+
+  updateThemeTrendPlaybackButtons();
+  renderThemeTrendAnalysis(
+    themes
+  );
+}
+
+
+function updateThemeTrendPlaybackButtons() {
+
+  const play =
+    document.getElementById(
+      "themeTrendPlay"
+    );
+
+  if (play) {
+    play.textContent =
+      themeTrendIsPlaying
+        ? "▶ Spiller…"
+        : (
+            themeTrendVisiblePoints !== null &&
+            themeTrendVisiblePoints > 0 &&
+            themeTrendVisiblePoints <
+              currentHistoryRows.length
+              ? "▶ Fortsett"
+              : "▶ Spill av utvikling"
+          );
+  }
+}
+
+
+function buildThemePodiums() {
+
+  return currentThemeResults.map(
+    themeRow => {
+
+      const ranking =
+        currentParticipants
+          .map(
+            person => ({
+
+              person,
+
+              distance:
+                themeRow
+                  .personResults[
+                    person
+                  ]
+                  .absoluteDistance
+            })
+          )
+          .sort(
+            (a, b) =>
+              a.distance -
+              b.distance
+          );
+
+      return {
+        theme:
+          themeRow.theme,
+        ranking
+      };
+    }
+  );
+}
+
+
+function renderThemePodium() {
+
+  const desktop =
+    document.getElementById(
+      "themePodiumDesktop"
+    );
+
+  const mobile =
+    document.getElementById(
+      "themePodiumMobile"
+    );
+
+  const summary =
+    document.getElementById(
+      "themeMedalSummary"
+    );
+
+  if (
+    !desktop ||
+    !mobile ||
+    !summary
+  ) {
+    return;
+  }
+
+
+  const podiums =
+    buildThemePodiums();
+
+  let table = `
+    <div class="table-wrap podium-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Tema</th>
+            <th>🥇 1. plass</th>
+            <th>🥈 2. plass</th>
+            <th>🥉 3. plass</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  podiums.forEach(
+    item => {
+
+      table += `
+        <tr>
+          <td><strong>${item.theme}</strong></td>
+          ${
+            [0, 1, 2]
+              .map(
+                index => {
+
+                  const entry =
+                    item.ranking[
+                      index
+                    ];
+
+                  return `
+                    <td>
+                      <span class="participant-cell">
+                        ${avatarHtml(
+                          entry.person,
+                          "avatar-sm"
+                        )}
+                        <span>
+                          ${entry.person}
+                          <span class="small">
+                            · ${formatPercent(entry.distance)}
+                          </span>
+                        </span>
+                      </span>
+                    </td>
+                  `;
+                }
+              )
+              .join("")
+          }
+        </tr>
+      `;
+    }
+  );
+
+  table += `
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  desktop.innerHTML =
+    table;
+
+
+  mobile.innerHTML =
+    podiums.map(
+      item => `
+        <div class="theme-podium-mobile-card">
+
+          <div class="theme-podium-mobile-title">
+            ${item.theme}
+          </div>
+
+          ${
+            ["🥇", "🥈", "🥉"]
+              .map(
+                (medal, index) => {
+
+                  const entry =
+                    item.ranking[
+                      index
+                    ];
+
+                  return `
+                    <div class="theme-podium-mobile-row">
+                      <span>${medal}</span>
+                      ${avatarHtml(
+                        entry.person,
+                        "avatar-sm"
+                      )}
+                      <strong>${entry.person}</strong>
+                      <span class="small">
+                        ${formatPercent(entry.distance)} unna
+                      </span>
+                    </div>
+                  `;
+                }
+              )
+              .join("")
+          }
+
+        </div>
+      `
+    )
+    .join("");
+
+
+  const counts =
+    Object.fromEntries(
+      currentParticipants.map(
+        person => [
+          person,
+          [0, 0, 0]
+        ]
+      )
+    );
+
+
+  podiums.forEach(
+    item => {
+
+      [0, 1, 2].forEach(
+        index => {
+
+          counts[
+            item
+              .ranking[
+                index
+              ]
+              .person
+          ][index] += 1;
+        }
+      );
+    }
+  );
+
+
+  summary.innerHTML =
+    currentParticipants
+      .map(
+        person => `
+          <div class="medal-summary-card">
+
+            <div class="medal-summary-name">
+              ${avatarHtml(
+                person,
+                "avatar-sm"
+              )}
+              ${person}
+            </div>
+
+            <div class="medal-summary-count">
+              🥇 ${counts[person][0]}
+              &nbsp; 🥈 ${counts[person][1]}
+              &nbsp; 🥉 ${counts[person][2]}
+            </div>
+
+          </div>
+        `
+      )
+      .join("");
+}
+
+
+function median(
+  values
+) {
+
+  const sorted =
+    [...values]
+      .sort(
+        (a, b) =>
+          a - b
+      );
+
+  const middle =
+    Math.floor(
+      sorted.length / 2
+    );
+
+  if (
+    sorted.length %
+    2
+  ) {
+
+    return sorted[
+      middle
+    ];
+  }
+
+  return (
+    sorted[
+      middle - 1
+    ] +
+    sorted[
+      middle
+    ]
+  ) / 2;
+}
+
+
+function showEstimates() {
+
+  let html = `
+    <h2>
+      🎯 Estimatene
+    </h2>
+
+    <p>
+      Alle deltakernes opprinnelige estimater, sortert fra lavest til høyest.
+      🎯 markerer hvem som ligger nærmest siste publiserte status.
+    </p>
+
+    <div class="estimates-grid">
+  `;
+
+
+  currentThemeResults.forEach(
+    themeRow => {
+
+      const estimates =
+        currentParticipants
+          .map(
+            person => ({
+
+              person,
+
+              prediction:
+                themeRow
+                  .personResults[
+                    person
+                  ]
+                  .prediction,
+
+              distance:
+                themeRow
+                  .personResults[
+                    person
+                  ]
+                  .absoluteDistance
+            })
+          )
+          .sort(
+            (a, b) =>
+              a.prediction -
+              b.prediction
+          );
+
+
+      const predictions =
+        estimates.map(
+          row =>
+            row.prediction
+        );
+
+      const closest =
+        [...estimates]
+          .sort(
+            (a, b) =>
+              a.distance -
+              b.distance
+          )[0];
+
+
+      const isPrice =
+        String(
+          themeRow.type
+        )
+        .trim()
+        .toLowerCase() ===
+        "pris";
+
+      const startValue =
+        parseNumber(
+          currentStartRow[
+            themeRow.theme
+          ]
+        );
+
+
+      html += `
+        <div class="estimate-card">
+
+          <div class="estimate-card-head">
+
+            <div>
+              <div class="estimate-card-title">
+                ${themeRow.theme}
+              </div>
+              <div class="small">
+                ${themeRow.type} · vekt ${formatNumber(themeRow.weight, 1)}×
+              </div>
+            </div>
+
+            <div class="estimate-status">
+              Siste status<br>
+              <strong>${formatPercent(themeRow.actualChange)}</strong>
+            </div>
+
+          </div>
+      `;
+
+
+      estimates.forEach(
+        row => {
+
+          const implied =
+            isPrice &&
+            Number.isFinite(
+              startValue
+            )
+              ? startValue *
+                (
+                  1 +
+                  row.prediction
+                )
+              : null;
+
+          html += `
+            <div class="estimate-row ${
+              row.person ===
+              closest.person
+                ? "closest"
+                : ""
+            }">
+
+              <div>
+                ${
+                  row.person ===
+                  closest.person
+                    ? "🎯"
+                    : ""
+                }
+              </div>
+
+              <div class="participant-cell">
+                ${avatarHtml(
+                  row.person,
+                  "avatar-sm"
+                )}
+                <span>${row.person}</span>
+              </div>
+
+              <div class="estimate-value">
+                ${formatPercent(
+                  row.prediction
+                )}
+                ${
+                  implied !== null
+                    ? `<div class="small">≈ ${formatNumber(implied, 2)}</div>`
+                    : ""
+                }
+              </div>
+
+            </div>
+          `;
+        }
+      );
+
+
+      html += `
+          <div class="estimate-meta">
+            <span>
+              Spenn:
+              <strong>
+                ${formatPercent(
+                  Math.min(
+                    ...predictions
+                  )
+                )}
+                –
+                ${formatPercent(
+                  Math.max(
+                    ...predictions
+                  )
+                )}
+              </strong>
+            </span>
+
+            <span>
+              Median:
+              <strong>
+                ${formatPercent(
+                  median(
+                    predictions
+                  )
+                )}
+              </strong>
+            </span>
+          </div>
+
+        </div>
+      `;
+    }
+  );
+
+
+  html += `
+    </div>
+  `;
+
+
+  document.getElementById(
+    "estimatesSection"
+  ).innerHTML =
+    html;
+}
+
+
+function showThemeResults(
+  themeResults
+) {
+
+  let html = `
+
+    <h2>
+      📊 Status per tema
+    </h2>
+
+    <p>
+      Faktisk utvikling,
+      vekting og nærmeste deltaker.
+    </p>
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Tema</th>
+            <th>Type</th>
+            <th>Vekt</th>
+            <th>Faktisk utvikling</th>
+            <th>Nærmest</th>
+            <th>Avstand</th>
+          </tr>
+
+        </thead>
+
+        <tbody>
+  `;
+
+
+  themeResults.forEach(
+    row => {
+
+      html += `
+
+        <tr>
+
+          <td>
+            ${row.theme}
+          </td>
+
+          <td>
+            ${row.type}
+          </td>
+
+          <td>
+            ${formatNumber(
+              row.weight,
+              1
+            )}×
+          </td>
+
+          <td>
+            ${formatPercent(
+              row.actualChange
+            )}
+          </td>
+
+          <td>
+            ${row.closestPerson}
+          </td>
+
+          <td>
+            ${formatPercent(
+              row.closestDistance
+            )}
+          </td>
+
+        </tr>
+      `;
+    }
+  );
+
+
+  html += `
+
+        </tbody>
+      </table>
+    </div>
+
+    <div class="theme-mobile-list">
+  `;
+
+
+  themeResults.forEach(
+    row => {
+
+      html += `
+        <div class="theme-mobile-card">
+          <div class="theme-mobile-title">
+            <strong>${row.theme}</strong>
+            <span class="theme-mobile-type">
+              ${row.type} · ${formatNumber(row.weight, 1)}×
+            </span>
+          </div>
+
+          <div class="theme-mobile-grid">
+            <div class="theme-mobile-stat">
+              <span class="theme-mobile-label">Faktisk utvikling</span>
+              <span class="theme-mobile-value">${formatPercent(row.actualChange)}</span>
+            </div>
+
+            <div class="theme-mobile-stat">
+              <span class="theme-mobile-label">Avstand</span>
+              <span class="theme-mobile-value">${formatPercent(row.closestDistance)}</span>
+            </div>
+
+            <div class="theme-mobile-stat" style="grid-column: 1 / -1;">
+              <span class="theme-mobile-label">Nærmest</span>
+              <span class="participant-cell">
+                ${avatarHtml(row.closestPerson, "avatar-sm")}
+                <span class="theme-mobile-value">${row.closestPerson}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  );
+
+
+  html += `
+    </div>
+
+
+    <div class="theme-subsection">
+
+      <h3>
+        📈 Temautvikling
+      </h3>
+
+      <p class="muted">
+        Utvikling fra 0 % ved konkurransestart.
+        Velg ett tema for å vise deltakernes estimater og presentasjonsmodus.
+      </p>
+
+      <div class="filter-block">
+        <div class="filter-title">
+          Temaer
+        </div>
+
+        <div
+          class="filter-row"
+          id="themeTrendFilters">
+        </div>
+      </div>
+
+      <div
+        class="theme-trend-controls"
+        id="themeTrendPlayback"
+        style="display:none;">
+
+        <button
+          type="button"
+          class="mode-button"
+          id="themeTrendPlay">
+          ▶ Spill av utvikling
+        </button>
+
+        <button
+          type="button"
+          class="mode-button"
+          id="themeTrendPause">
+          ⏸ Pause
+        </button>
+
+        <button
+          type="button"
+          class="mode-button"
+          id="themeTrendRestart">
+          ↺ Start på nytt
+        </button>
+
+        <label class="small" for="themeTrendSpeed">
+          Tempo:
+        </label>
+
+        <select id="themeTrendSpeed">
+          <option value="slow">Rolig</option>
+          <option value="normal" selected>Normal</option>
+          <option value="fast">Rask</option>
+        </select>
+
+      </div>
+
+      <p
+        class="chart-note"
+        id="themeTrendSelectionInfo">
+      </p>
+
+      <div class="chart-wrap">
+        <canvas id="themeTrendChart"></canvas>
+      </div>
+
+      <div id="themeTrendAnalysis"></div>
+
+    </div>
+
+
+    <div class="theme-subsection">
+
+      <h3>
+        🏅 Tema-pallen
+      </h3>
+
+      <p class="muted">
+        Dagens 1., 2. og 3. plass i hvert tema,
+        basert på siste publiserte status.
+      </p>
+
+      <div id="themePodiumDesktop"></div>
+      <div
+        class="theme-podium-mobile"
+        id="themePodiumMobile">
+      </div>
+
+      <h3 style="margin-top:22px;">
+        Temamedaljer hittil
+      </h3>
+
+      <div
+        class="medal-summary"
+        id="themeMedalSummary">
+      </div>
+
+    </div>
+  `;
+
+
+  document.getElementById(
+    "themeSection"
+  ).innerHTML = html;
+
+
+  themeTrendSimulationMode = false;
+
+  selectedTrendThemes =
+    new Set(
+      currentThemeResults.map(
+        row =>
+          row.theme
+      )
+    );
+
+  themeTrendVisiblePoints =
+    null;
+
+  renderTrendFilterButtons();
+  renderThemeTrendChart();
+  renderThemePodium();
+
+
+  const play =
+    document.getElementById(
+      "themeTrendPlay"
+    );
+
+  if (play) {
+
+    play.onclick =
+      () =>
+        startThemeTrendAnimation(
+          false
+        );
+  }
+
+
+  const pause =
+    document.getElementById(
+      "themeTrendPause"
+    );
+
+  if (pause) {
+
+    pause.onclick =
+      () => {
+
+        stopThemeTrendAnimation();
+        renderThemeTrendChart();
+      };
+  }
+
+
+  const restart =
+    document.getElementById(
+      "themeTrendRestart"
+    );
+
+  if (restart) {
+
+    restart.onclick =
+      () =>
+        startThemeTrendAnimation(
+          true
+        );
+  }
+}
+
+
+function buildSeasonData(
+  year,
+  historyRaw,
+  dashboardRaw
+) {
+
+  const participants =
+    detectParticipants(
+      dashboardRaw
+    );
+
+  const competitionRows =
+    getCompetitionRows(
+      dashboardRaw,
+      participants
+    );
+
+  if (!competitionRows.length) {
+    throw new Error(
+      `Fant ingen gyldige konkurransetemaer for FF${year}.`
+    );
+  }
+
+  const historyRows =
+    getValidHistoryRows(
+      historyRaw,
+      competitionRows
+    );
+
+  if (!historyRows.length) {
+    throw new Error(
+      `Fant ingen komplette historikkrader for FF${year}.`
+    );
+  }
+
+  const startRow =
+    historyRows[0];
+
+  const latestRow =
+    historyRows[
+      historyRows.length - 1
+    ];
+
+  const result =
+    calculateCompetition(
+      competitionRows,
+      participants,
+      startRow,
+      latestRow
+    );
+
+  return {
+    year,
+    status:
+      seasonConfig[year].status,
+    simulatorStatus:
+      detectSimulatorStatus(
+        dashboardRaw
+      ),
+    dashboardRaw,
+    historyRaw,
+    participants,
+    competitionRows,
+    historyRows,
+    startRow,
+    latestRow,
+    result
+  };
+}
+
+
+function seasonOptionLabel(year) {
+  const data =
+    allSeasonData[year];
+
+  const status =
+    data
+      ? data.status
+      : seasonConfig[year].status;
+
+  return `FF${year} · ${status}`;
+}
+
+
+function renderSeasonSelector() {
+
+  const select =
+    document.getElementById(
+      "seasonSelect"
+    );
+
+  if (!select) {
+    return;
+  }
+
+  const years =
+    Object.keys(allSeasonData)
+      .map(Number)
+      .sort((a, b) => b - a);
+
+  select.innerHTML =
+    years.map(
+      year =>
+        `<option value="${year}">${seasonOptionLabel(year)}</option>`
+    ).join("");
+
+  select.value =
+    String(activeSeasonYear);
+
+  select.onchange =
+    () => {
+      activateSeason(
+        Number(select.value)
+      );
+    };
+}
+
+
+function allKnownParticipants() {
+
+  const names =
+    new Set();
+
+  Object.values(allSeasonData)
+    .forEach(
+      season => {
+        season.participants
+          .forEach(
+            person =>
+              names.add(person)
+          );
+      }
+    );
+
+  return Array.from(names)
+    .sort((a, b) =>
+      a.localeCompare(
+        b,
+        "nb"
+      )
+    );
+}
+
+
+function finalSeasonData() {
+  return Object.values(allSeasonData)
+    .filter(
+      season =>
+        String(season.status)
+          .toLowerCase() ===
+        "final"
+    )
+    .sort(
+      (a, b) =>
+        a.year - b.year
+    );
+}
+
+
+function themePodiumRowsForSeason(
+  season
+) {
+
+  return season.result.themeResults
+    .map(
+      themeRow => {
+
+        const ranking =
+          season.participants
+            .map(
+              person => ({
+                person,
+                distance:
+                  themeRow
+                    .personResults[person]
+                    .absoluteDistance,
+                weightedDistance:
+                  themeRow
+                    .personResults[person]
+                    .weightedDistance,
+                prediction:
+                  themeRow
+                    .personResults[person]
+                    .prediction
+              })
+            )
+            .sort(
+              (a, b) =>
+                a.distance - b.distance
+            );
+
+        return {
+          theme:
+            themeRow.theme,
+          actualChange:
+            themeRow.actualChange,
+          ranking
+        };
+      }
+    );
+}
+
+
+const excludedFromHistoricalEstimateStats = ["styringsrente"];
+
+function includeInHistoricalEstimateStats(themeName) {
+  const normalized = String(themeName || "").trim().toLowerCase();
+  return !excludedFromHistoricalEstimateStats.some(term => normalized.includes(term));
+}
+
+function participantCareerStats(
+  person
+) {
+
+  let championshipWins = 0;
+  let championshipPodiums = 0;
+  let themeWins = 0;
+  let themePodiums = 0;
+  let bestEstimate = null;
+  let worstEstimate = null;
+
+  finalSeasonData()
+    .forEach(
+      season => {
+
+        const championshipIndex =
+          season.result.leaderboard
+            .findIndex(
+              row =>
+                row.person === person
+            );
+
+        if (championshipIndex === 0) {
+          championshipWins += 1;
+        }
+
+        if (
+          championshipIndex >= 0 &&
+          championshipIndex <= 2
+        ) {
+          championshipPodiums += 1;
+        }
+
+        themePodiumRowsForSeason(
+          season
+        ).forEach(
+          theme => {
+
+            const rank =
+              theme.ranking.findIndex(
+                row =>
+                  row.person === person
+              );
+
+            if (rank === 0) {
+              themeWins += 1;
+            }
+
+            if (
+              rank >= 0 &&
+              rank <= 2
+            ) {
+              themePodiums += 1;
+            }
+
+            const entry =
+              theme.ranking.find(
+                row =>
+                  row.person === person
+              );
+
+            if (!entry) {
+              return;
+            }
+
+            // Styringsrente beholdes i pall/statistikk, men tas ikke med
+            // i historiske beste/dårligste estimater fordi skalaen ikke er sammenlignbar.
+            if (!includeInHistoricalEstimateStats(theme.theme)) {
+              return;
+            }
+
+            const item = {
+              year:
+                season.year,
+              theme:
+                theme.theme,
+              distance:
+                entry.distance,
+              prediction:
+                entry.prediction,
+              actualChange:
+                theme.actualChange
+            };
+
+            if (
+              !bestEstimate ||
+              item.distance <
+                bestEstimate.distance
+            ) {
+              bestEstimate = item;
+            }
+
+            if (
+              !worstEstimate ||
+              item.distance >
+                worstEstimate.distance
+            ) {
+              worstEstimate = item;
+            }
+          }
+        );
+      }
+    );
+
+  return {
+    championshipWins,
+    championshipPodiums,
+    themeWins,
+    themePodiums,
+    bestEstimate,
+    worstEstimate
+  };
+}
+
+
+function selectedSeasonParticipantInfo(
+  person
+) {
+
+  const season =
+    allSeasonData[
+      activeSeasonYear
+    ];
+
+  const leaderboardIndex =
+    season.result.leaderboard
+      .findIndex(
+        row =>
+          row.person === person
+      );
+
+  if (leaderboardIndex < 0) {
+    return null;
+  }
+
+  const leaderboardRow =
+    season.result.leaderboard[
+      leaderboardIndex
+    ];
+
+  const estimates =
+    season.result.themeResults
+      .map(
+        themeRow => ({
+          theme:
+            themeRow.theme,
+          distance:
+            themeRow
+              .personResults[person]
+              .absoluteDistance,
+          prediction:
+            themeRow
+              .personResults[person]
+              .prediction,
+          actualChange:
+            themeRow.actualChange
+        })
+      )
+      .sort(
+        (a, b) =>
+          a.distance - b.distance
+      );
+
+  return {
+    rank:
+      leaderboardIndex + 1,
+    score:
+      leaderboardRow.score,
+    bestEstimate:
+      estimates[0],
+    worstEstimate:
+      estimates[
+        estimates.length - 1
+      ]
+  };
+}
+
+
+function estimateDistancePp(value, decimals = 2) {
+  return (Number(value) * 100)
+    .toFixed(decimals)
+    .replace(".", ",") + " pp";
+}
+
+
+function estimateSummaryParts(item) {
+
+  if (!item) {
+    return { theme: "–", meta: "" };
+  }
+
+  return {
+    theme: item.theme,
+    meta: `FF${item.year} · ${estimateDistancePp(item.distance)} unna`
+  };
+}
+
+
+function renderParticipantProfile() {
+
+  const container =
+    document.getElementById(
+      "participantSection"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  const people =
+    allKnownParticipants();
+
+  if (!people.length) {
+    container.innerHTML = "";
+    return;
+  }
+
+  if (
+    !selectedProfileParticipant ||
+    !people.includes(
+      selectedProfileParticipant
+    )
+  ) {
+    selectedProfileParticipant =
+      currentOfficialResult
+        .leaderboard[0]
+        .person;
+  }
+
+  const person =
+    selectedProfileParticipant;
+
+  const current =
+    selectedSeasonParticipantInfo(
+      person
+    );
+
+  const career =
+    participantCareerStats(
+      person
+    );
+
+  const bestEver =
+    estimateSummaryParts(
+      career.bestEstimate
+    );
+
+  const worstEver =
+    estimateSummaryParts(
+      career.worstEstimate
+    );
+
+  let buttons = "";
+
+  people.forEach(
+    name => {
+      buttons += `
+        <button
+          type="button"
+          class="filter-button profile-person-button ${name === person ? "active" : ""}"
+          data-profile-person="${name}">
+          <img
+            src="${participantImagePath(name)}"
+            alt=""
+            onerror="this.style.display='none';">
+          <span>${name}</span>
+        </button>
+      `;
+    }
+  );
+
+  const currentHtml =
+    current
+      ? `
+        <div class="profile-current-grid">
+          <div class="profile-stat">
+            <div class="profile-stat-label">Plassering</div>
+            <div class="profile-stat-value">#${current.rank}</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-label">Score</div>
+            <div class="profile-stat-value">${formatPercent(current.score)}</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-label">Beste estimat</div>
+            <div class="profile-stat-value">${current.bestEstimate.theme}</div>
+            <div class="small">${estimateDistancePp(current.bestEstimate.distance)} unna</div>
+          </div>
+        </div>
+      `
+      : `
+        <p class="muted">
+          ${person} deltok ikke i FF${activeSeasonYear}.
+        </p>
+      `;
+
+  container.innerHTML = `
+    <h2>👤 Deltaker</h2>
+    <p>
+      Velg en deltaker for årets status og noen få historiske kuriositeter.
+    </p>
+
+    <div class="profile-panel">
+      <div class="filter-row" id="participantProfileButtons">
+        ${buttons}
+      </div>
+
+      <div class="profile-main">
+        <div class="profile-top">
+          <div class="profile-identity">
+            <img
+              class="profile-portrait"
+              src="${participantImagePath(person)}"
+              alt="Avatar for ${person}"
+              onerror="this.style.display='none';">
+
+            <div class="profile-identity-copy">
+              <div class="profile-name">${person}</div>
+              <div class="profile-season-line">
+                FF${activeSeasonYear} · ${allSeasonData[activeSeasonYear].status}
+              </div>
+            </div>
+          </div>
+
+          ${currentHtml}
+        </div>
+
+        <h3 class="profile-section-title">Historikk</h3>
+
+        <div class="profile-history-grid">
+          <div class="profile-stat">
+            <div class="profile-stat-label">🏆 Totalseire</div>
+            <div class="profile-stat-value">${career.championshipWins}</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-label">🥇🥈🥉 Pallplasser</div>
+            <div class="profile-stat-value">${career.championshipPodiums}</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-label">🎯 Temaseire</div>
+            <div class="profile-stat-value">${career.themeWins}</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-label">🏅 Tema-pallplasser</div>
+            <div class="profile-stat-value">${career.themePodiums}</div>
+          </div>
+        </div>
+
+        <div class="profile-highlight">
+          <div class="profile-highlight-card">
+            <strong>🎯 Beste treff noensinne</strong>
+            <div class="profile-highlight-theme">${bestEver.theme}</div>
+            <div class="profile-highlight-meta">${bestEver.meta}</div>
+          </div>
+          <div class="profile-highlight-card">
+            <strong>💥 Største bom</strong>
+            <div class="profile-highlight-theme">${worstEver.theme}</div>
+            <div class="profile-highlight-meta">${worstEver.meta}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  container
+    .querySelectorAll(
+      "[data-profile-person]"
+    )
+    .forEach(
+      button => {
+        button.addEventListener(
+          "click",
+          () => {
+            selectedProfileParticipant =
+              button.dataset.profilePerson;
+            renderParticipantProfile();
+          }
+        );
+      }
+    );
+}
+
+
+function historicalRecords() {
+
+  let largestChampionshipMargin = null;
+  let largestThemeMargin = null;
+  let smallestThemeMargin = null;
+  let bestHit = null;
+  let biggestMiss = null;
+
+  finalSeasonData()
+    .forEach(
+      season => {
+
+        const board =
+          season.result.leaderboard;
+
+        if (board.length >= 2) {
+          const margin =
+            board[1].score -
+            board[0].score;
+
+          const item = {
+            year:
+              season.year,
+            person:
+              board[0].person,
+            runnerUp:
+              board[1].person,
+            margin
+          };
+
+          if (
+            !largestChampionshipMargin ||
+            margin >
+              largestChampionshipMargin.margin
+          ) {
+            largestChampionshipMargin = item;
+          }
+        }
+
+        themePodiumRowsForSeason(
+          season
+        ).forEach(
+          theme => {
+
+            if (
+              theme.ranking.length >= 2
+            ) {
+              const margin =
+                theme.ranking[1].distance -
+                theme.ranking[0].distance;
+
+              const item = {
+                year:
+                  season.year,
+                theme:
+                  theme.theme,
+                winner:
+                  theme.ranking[0].person,
+                runnerUp:
+                  theme.ranking[1].person,
+                margin
+              };
+
+              if (
+                !largestThemeMargin ||
+                margin >
+                  largestThemeMargin.margin
+              ) {
+                largestThemeMargin = item;
+              }
+
+              if (
+                !smallestThemeMargin ||
+                margin <
+                  smallestThemeMargin.margin
+              ) {
+                smallestThemeMargin = item;
+              }
+            }
+
+            if (!includeInHistoricalEstimateStats(theme.theme)) {
+              return;
+            }
+
+            theme.ranking
+              .forEach(
+                entry => {
+                  const item = {
+                    year:
+                      season.year,
+                    theme:
+                      theme.theme,
+                    person:
+                      entry.person,
+                    distance:
+                      entry.distance
+                  };
+
+                  if (
+                    !bestHit ||
+                    item.distance <
+                      bestHit.distance
+                  ) {
+                    bestHit = item;
+                  }
+
+                  if (
+                    !biggestMiss ||
+                    item.distance >
+                      biggestMiss.distance
+                  ) {
+                    biggestMiss = item;
+                  }
+                }
+              );
+          }
+        );
+      }
+    );
+
+  return {
+    largestChampionshipMargin,
+    largestThemeMargin,
+    smallestThemeMargin,
+    bestHit,
+    biggestMiss
+  };
+}
+
+
+function renderHistoricalSection() {
+
+  const container =
+    document.getElementById(
+      "historicalSection"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  const finals =
+    finalSeasonData()
+      .sort(
+        (a, b) =>
+          b.year - a.year
+      );
+
+  if (!finals.length) {
+    container.innerHTML = "";
+    return;
+  }
+
+  const records =
+    historicalRecords();
+
+  let cards = "";
+
+  finals.forEach(
+    season => {
+
+      const board =
+        season.result.leaderboard;
+
+      const first = board[0];
+      const second = board[1];
+      const third = board[2];
+
+      const margin =
+        second
+          ? second.score - first.score
+          : 0;
+
+      cards += `
+        <div class="season-history-card">
+          <div class="history-winner">
+            <img src="${participantImagePath(first.person)}" alt="${first.person}">
+            <div>
+              <div class="history-year">FF${season.year}</div>
+              <div class="history-champion">🏆 ${first.person}</div>
+              <div class="small">Champion · ${formatPercent(first.score)}</div>
+            </div>
+          </div>
+
+          ${second ? `
+            <div class="history-podium-line">
+              ${avatarHtml(second.person, "avatar-sm")}
+              <span>🥈 <strong>${second.person}</strong></span>
+            </div>
+          ` : ""}
+
+          ${third ? `
+            <div class="history-podium-line">
+              ${avatarHtml(third.person, "avatar-sm")}
+              <span>🥉 <strong>${third.person}</strong></span>
+            </div>
+          ` : ""}
+
+          <div class="history-margin">
+            Seiersmargin: <strong>${formatPercent(margin)}</strong>
+          </div>
+        </div>
+      `;
+    }
+  );
+
+  const champ =
+    records.largestChampionshipMargin;
+  const largeTheme =
+    records.largestThemeMargin;
+  const smallTheme =
+    records.smallestThemeMargin;
+  const best =
+    records.bestHit;
+  const worst =
+    records.biggestMiss;
+
+  container.innerHTML = `
+    <h2>🏛️ Historisk</h2>
+    <p>
+      Tidligere vinnere og noen få rekorder fra ferdigspilte FF-sesonger.
+    </p>
+
+    <div class="history-panel">
+      <div class="season-history-grid">
+        ${cards}
+      </div>
+
+      <h3 style="margin-top:24px;">FF-rekorder</h3>
+
+      <div class="record-grid">
+        <div class="record-card">
+          <div class="record-label">🏆 Største seiersmargin totalt</div>
+          <div class="record-value">${champ ? `${champ.person}, FF${champ.year}` : "–"}</div>
+          <div class="small">${champ ? `${formatPercent(champ.margin)} foran ${champ.runnerUp}` : ""}</div>
+        </div>
+
+        <div class="record-card">
+          <div class="record-label">🚀 Største temaseiersmargin</div>
+          <div class="record-value">${largeTheme ? `${largeTheme.winner} · ${largeTheme.theme}` : "–"}</div>
+          <div class="small">${largeTheme ? `FF${largeTheme.year} · ${formatPercent(largeTheme.margin)}` : ""}</div>
+        </div>
+
+        <div class="record-card">
+          <div class="record-label">🔬 Minste temaseiersmargin</div>
+          <div class="record-value">${smallTheme ? `${smallTheme.winner} · ${smallTheme.theme}` : "–"}</div>
+          <div class="small">${smallTheme ? `FF${smallTheme.year} · ${formatPercent(smallTheme.margin)}` : ""}</div>
+        </div>
+
+        <div class="record-card">
+          <div class="record-label">🎯 Beste enkelt-treff</div>
+          <div class="record-value">${best ? `${best.person} · ${best.theme}` : "–"}</div>
+          <div class="small">${best ? `FF${best.year} · ${formatPercent(best.distance)} unna` : ""}</div>
+        </div>
+
+        <div class="record-card">
+          <div class="record-label">💥 Største bom</div>
+          <div class="record-value">${worst ? `${worst.person} · ${worst.theme}` : "–"}</div>
+          <div class="small">${worst ? `FF${worst.year} · ${formatPercent(worst.distance)} unna` : ""}</div>
+        </div>
+      </div>
+
+      <p class="history-note">
+        Historiske rekorder beregnes kun fra sesonger merket Final. FF${activeSeasonYear} påvirker derfor ikke rekordene dersom sesongen fortsatt er Live.
+      </p>
+    </div>
+  `;
+}
+
+
+function activateSeason(year) {
+
+  const season =
+    allSeasonData[year];
+
+  if (!season) {
+    return;
+  }
+
+  stopThemeTrendAnimation();
+
+  activeSeasonYear = year;
+
+  currentParticipants =
+    season.participants;
+
+  currentThemeResults =
+    season.result.themeResults;
+
+  currentCompetitionRows =
+    season.competitionRows;
+
+  currentHistoryRows =
+    season.historyRows;
+
+  currentStartRow =
+    season.startRow;
+
+  currentLatestRow =
+    season.latestRow;
+
+  currentOfficialResult =
+    season.result;
+
+  currentSimulatorStatus =
+    season.simulatorStatus;
+
+  selectedProfileParticipant =
+    season.result.leaderboard[0]
+      ? season.result.leaderboard[0].person
+      : null;
+
+  const subtitle =
+    document.querySelector(
+      ".subtitle"
+    );
+
+  if (subtitle) {
+    subtitle.textContent =
+      `${season.status} Championship Dashboard · FF${year}`;
+  }
+
+  showSummaryCards(
+    season.result.leaderboard,
+    season.latestRow,
+    season.competitionRows,
+    season.participants
+  );
+
+  showLeaderboard(
+    season.result.leaderboard
+  );
+
+  createChartSection(
+    season.participants,
+    season.result.themeResults
+  );
+
+  showThemeResults(
+    season.result.themeResults
+  );
+
+  createHistorySection();
+  createSimulatorSection();
+  showEstimates();
+  renderParticipantProfile();
+  renderHistoricalSection();
+
+  showControlInfo(
+    season.participants,
+    season.competitionRows,
+    season.startRow,
+    season.latestRow
+  );
+
+  renderSeasonSelector();
+
+  document.getElementById(
+    "loading"
+  ).innerHTML = `
+    <span class="ok">
+      ✓ FF${year} lastet. ${season.status === "Live" ? "Status beregnet per" : "Sluttstatus per"} ${season.latestRow["Dato"]}.
+    </span>
+  `;
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+
+async function loadAllSeasonData() {
+
+  const entries =
+    Object.entries(
+      seasonConfig
+    );
+
+  const results =
+    await Promise.allSettled(
+      entries.map(
+        async ([year, config]) => {
+          const [historyRaw, dashboardRaw] =
+            await Promise.all([
+              loadCsv(config.historyUrl),
+              loadCsv(config.dashboardDataUrl)
+            ]);
+
+          return buildSeasonData(
+            Number(year),
+            historyRaw,
+            dashboardRaw
+          );
+        }
+      )
+    );
+
+  const errors = [];
+
+  results.forEach(
+    (result, index) => {
+      const year =
+        Number(entries[index][0]);
+
+      if (result.status === "fulfilled") {
+        allSeasonData[year] =
+          result.value;
+      } else {
+        errors.push(
+          `FF${year}: ${result.reason.message}`
+        );
+        console.error(
+          `Kunne ikke laste FF${year}`,
+          result.reason
+        );
+      }
+    }
+  );
+
+  if (
+    !allSeasonData[2026]
+  ) {
+    throw new Error(
+      "FF2026 kunne ikke lastes. " +
+      errors.join(" · ")
+    );
+  }
+
+  renderSeasonSelector();
+  activateSeason(2026);
+
+  if (errors.length) {
+    console.warn(
+      "Noen historiske sesonger kunne ikke lastes:",
+      errors
+    );
+  }
+}
+
+
+function showControlInfo(
+  participants,
+  competitionRows,
+  startRow,
+  latestRow
+) {
+
+  document.getElementById(
+    "controlSection"
+  ).innerHTML = `
+
+    <h2>
+      Datakontroll
+    </h2>
+
+    <p class="small">
+
+      FF${activeSeasonYear} (${allSeasonData[activeSeasonYear] ? allSeasonData[activeSeasonYear].status : ""}) har automatisk
+      funnet
+
+      <strong>
+        ${participants.length}
+        deltakere
+      </strong>
+
+      og
+
+      <strong>
+        ${competitionRows.length}
+        temaer
+      </strong>.
+
+    </p>
+
+
+    <p class="small">
+
+      Startdato:
+
+      <strong>
+        ${startRow["Dato"]}
+      </strong>
+
+      · siste status:
+
+      <strong>
+        ${latestRow["Dato"]}
+      </strong>
+
+    </p>
+  `;
+}
+
+
+async function loadData() {
+
+  try {
+
+    await loadAllSeasonData();
+
+    console.log(
+      "Sesonger lastet:",
+      Object.keys(allSeasonData)
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    document.getElementById(
+      "loading"
+    ).innerHTML = `
+      <span class="error">
+        Feil: ${error.message}
+      </span>
+    `;
+  }
+}
+
+
+
+
+// v7.7: compact back-to-top buttons on major sections
+(function setupSectionTopButtons(){
+  const ids=["leaderboardSection","chartSection","themeSection","themeTrendSection","themePodiumSection","historySection","simulatorSection","estimatesSection","participantSection","historicalSection"];
+
+  function goTop(){
+    if(typeof window.ffScrollDashboardTop==="function"){
+      window.ffScrollDashboardTop();
+    }else if(window.parent && window.parent!==window){
+      window.parent.postMessage({type:"fiascofinance-scroll-top"},"*");
+    }else{
+      window.scrollTo({top:0,behavior:"smooth"});
+    }
+  }
+
+  function add(section){
+    if(!section || section.querySelector(".ff-section-top-btn")) return;
+    const heading=section.querySelector("h2,h3,.section-title,.section-heading");
+    if(!heading) return;
+    let row=heading.parentElement;
+    if(!row || row===section || row.children.length>4){
+      row=document.createElement("div");
+      row.className="ff-section-heading-row";
+      heading.parentNode.insertBefore(row,heading);
+      row.appendChild(heading);
+    }else{
+      row.classList.add("ff-section-heading-row");
+    }
+    const b=document.createElement("button");
+    b.type="button";
+    b.className="ff-section-top-btn";
+    b.textContent="↑ Topp";
+    b.setAttribute("aria-label","Til toppen");
+    b.addEventListener("click",goTop);
+    row.appendChild(b);
+  }
+
+  function enhance(){ids.forEach(id=>add(document.getElementById(id)));}
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",enhance,{once:true});
+  else enhance();
+  new MutationObserver(enhance).observe(document.documentElement,{childList:true,subtree:true});
+})();
+
+// ------------------------------------------------------------
+// v7.8: robust one.com / iframe navigation bridge
+//
+// Key change:
+// - The dashboard proactively sends a complete map of section positions
+//   to the parent page after load and whenever layout changes.
+// - The parent no longer needs a request/response round-trip for every click.
+// - The old request-based method is still supported as a fallback.
+// - "↑ Topp" sends an explicit scroll-to-dashboard-top command.
+// ------------------------------------------------------------
+(function setupRobustParentNavigationBridge() {
+  const navTargets = {
+    leaderboardSection: "Live",
+    chartSection: "Analyse",
+    themeSection: "Tema",
+    historySection: "Race",
+    simulatorSection: "Hva hvis?",
+    participantSection: "Deltaker",
+    estimatesSection: "Estimat"
+  };
+
+  let externalNavigationEnabled = false;
+  let lastMapJson = "";
+  let mapRaf = null;
+
+  function getTargetTop(id) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+
+    return Math.max(
+      0,
+      Math.round(el.getBoundingClientRect().top + window.scrollY)
+    );
+  }
+
+  function buildNavigationMap() {
+    const targets = {};
+
+    Object.keys(navTargets).forEach((id) => {
+      const top = getTargetTop(id);
+      if (Number.isFinite(top)) {
+        targets[id] = top;
+      }
+    });
+
+    return targets;
+  }
+
+  function sendNavigationMap(force = false) {
+    if (!window.parent || window.parent === window) return;
+
+    if (mapRaf) cancelAnimationFrame(mapRaf);
+
+    mapRaf = requestAnimationFrame(() => {
+      mapRaf = null;
+
+      const targets = buildNavigationMap();
+      const json = JSON.stringify(targets);
+
+      if (!force && json === lastMapJson) return;
+      lastMapJson = json;
+
+      window.parent.postMessage(
+        {
+          type: "fiascofinance-navigation-map",
+          targets: targets
+        },
+        "*"
+      );
+    });
+  }
+
+  function enableExternalNavigation() {
+    externalNavigationEnabled = true;
+    document.body.classList.add("ff-external-nav");
+
+    // Layout can change when the internal quick-nav is hidden.
+    setTimeout(() => sendNavigationMap(true), 0);
+    setTimeout(() => sendNavigationMap(true), 100);
+    setTimeout(() => sendNavigationMap(true), 350);
+    window.dispatchEvent(new Event("resize"));
+
+    window.parent.postMessage(
+      {
+        type: "fiascofinance-parent-ack",
+        externalNavigation: true
+      },
+      "*"
+    );
+  }
+
+  function sendOneTarget(target) {
+    if (!Object.prototype.hasOwnProperty.call(navTargets, target)) return;
+
+    const top = getTargetTop(target);
+    if (!Number.isFinite(top)) return;
+
+    window.parent.postMessage(
+      {
+        type: "fiascofinance-nav-target",
+        target: target,
+        top: top
+      },
+      "*"
+    );
+  }
+
+  window.addEventListener("message", function(event) {
+    if (!window.parent || event.source !== window.parent) return;
+    if (!event.data || typeof event.data !== "object") return;
+
+    if (event.data.type === "fiascofinance-parent-ready") {
+      enableExternalNavigation();
+      return;
+    }
+
+    // Backward-compatible fallback for the earlier one.com embed code.
+    if (event.data.type === "fiascofinance-get-nav-target") {
+      sendOneTarget(String(event.data.target || ""));
+      return;
+    }
+
+    if (event.data.type === "fiascofinance-request-navigation-map") {
+      sendNavigationMap(true);
+    }
+  });
+
+  // Publish the map proactively as soon as the dashboard is usable.
+  function initialPublish() {
+    sendNavigationMap(true);
+    setTimeout(() => sendNavigationMap(true), 150);
+    setTimeout(() => sendNavigationMap(true), 600);
+    setTimeout(() => sendNavigationMap(true), 1500);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialPublish, { once: true });
+  } else {
+    initialPublish();
+  }
+
+  window.addEventListener("load", initialPublish);
+  window.addEventListener("resize", () => sendNavigationMap(true));
+
+  // Season switches, charts, participant cards etc. can move section positions.
+  if ("ResizeObserver" in window) {
+    const ro = new ResizeObserver(() => sendNavigationMap());
+    ro.observe(document.documentElement);
+    if (document.body) ro.observe(document.body);
+  }
+
+  if ("MutationObserver" in window) {
+    const mo = new MutationObserver(() => sendNavigationMap());
+    mo.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      characterData: true
+    });
+  }
+
+  // Small public helper used by the v7.7 "↑ Topp" buttons.
+  window.ffScrollDashboardTop = function() {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(
+        { type: "fiascofinance-scroll-top" },
+        "*"
+      );
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+})();
+
+// ------------------------------------------------------------
+// one.com / iframe auto-height support
+// Sends the dashboard's current document height to the parent page.
+// The parent can then resize the iframe so the visitor gets one
+// continuous scrollbar instead of scrolling inside the dashboard.
+// ------------------------------------------------------------
+(function setupParentAutoHeight() {
+  let lastHeight = 0;
+  let rafId = null;
+
+  function getDocumentHeight() {
+    const body = document.body;
+    const root = document.documentElement;
+
+    return Math.ceil(Math.max(
+      body ? body.scrollHeight : 0,
+      body ? body.offsetHeight : 0,
+      root ? root.scrollHeight : 0,
+      root ? root.offsetHeight : 0,
+      root ? root.clientHeight : 0
+    ));
+  }
+
+  function sendHeight(force = false) {
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+    }
+
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      const height = getDocumentHeight();
+
+      if (!force && Math.abs(height - lastHeight) < 2) {
+        return;
+      }
+
+      lastHeight = height;
+
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage(
+          {
+            type: "fiascofinance-dashboard-height",
+            height: height
+          },
+          "*"
+        );
+      }
+    });
+  }
+
+  // Initial measurements: once immediately and again after fonts/images/layout settle.
+  sendHeight(true);
+  window.addEventListener("load", () => {
+    sendHeight(true);
+    setTimeout(() => sendHeight(true), 250);
+    setTimeout(() => sendHeight(true), 1000);
+  });
+
+  // Browser/device width changes can alter wrapping and therefore total height.
+  window.addEventListener("resize", () => sendHeight(true));
+
+  // Watch the complete document for real layout-size changes.
+  if ("ResizeObserver" in window) {
+    const resizeObserver = new ResizeObserver(() => sendHeight());
+    resizeObserver.observe(document.documentElement);
+    if (document.body) resizeObserver.observe(document.body);
+  }
+
+  // Dynamic dashboard rendering, season switches, charts and profile changes
+  // can change height without a window resize.
+  if ("MutationObserver" in window) {
+    const mutationObserver = new MutationObserver(() => sendHeight());
+    mutationObserver.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      characterData: true
+    });
+  }
+
+  // Safety net for delayed chart/image rendering.
+  let checks = 0;
+  const timer = setInterval(() => {
+    sendHeight();
+    checks += 1;
+    if (checks >= 20) clearInterval(timer);
+  }, 500);
+})();
+
+initializeTheme();
+loadData();
+
+</script>
+
+</body>
+</html>
