@@ -1933,10 +1933,193 @@
 .ff-section-heading-row>:first-child{min-width:0}
 @media(max-width:700px){.ff-section-top-btn{padding:6px 9px;font-size:11px}}
 
+
+    /* TEST v1: simple FF access gate */
+    body.ff-auth-locked > :not(#ffAccessGate):not(script) {
+      display: none !important;
+    }
+
+    #ffAccessGate {
+      min-height: calc(100vh - 60px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    body:not(.ff-auth-locked) #ffAccessGate {
+      display: none !important;
+    }
+
+    .ff-access-card {
+      width: min(420px, 100%);
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 16px;
+      padding: 28px;
+      text-align: center;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+
+    .ff-access-logo {
+      width: 86px;
+      height: 68px;
+      object-fit: contain;
+      margin-bottom: 10px;
+    }
+
+    .ff-access-card h1 {
+      margin: 6px 0 8px;
+      font-size: 28px;
+    }
+
+    .ff-access-card p {
+      margin: 0 0 18px;
+      color: #666;
+      line-height: 1.45;
+    }
+
+    .ff-access-input {
+      width: 150px;
+      max-width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #bbb;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 5px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ff-access-button {
+      display: block;
+      width: 100%;
+      margin-top: 14px;
+      padding: 12px 16px;
+      border: 0;
+      border-radius: 10px;
+      background: #222;
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .ff-access-error {
+      min-height: 20px;
+      margin-top: 10px;
+      color: #b00020;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    body.dark-mode .ff-access-card {
+      background: #181e25;
+      border-color: #303945;
+      color: #e8edf2;
+    }
+
+    body.dark-mode .ff-access-card p {
+      color: #aeb7c2;
+    }
+
+    body.dark-mode .ff-access-input {
+      background: #222a33;
+      color: #e8edf2;
+      border-color: #46515e;
+    }
+
+    @media (max-width: 700px) {
+      #ffAccessGate {
+        min-height: calc(100vh - 32px);
+        padding: 16px;
+      }
+
+      .ff-access-card {
+        padding: 24px 20px;
+      }
+
+      .ff-access-card h1 {
+        font-size: 25px;
+      }
+    }
+
   </style>
 </head>
 
-<body>
+<body class="ff-auth-locked">
+
+  <div id="ffAccessGate" aria-label="FF Championship adgang">
+    <div class="ff-access-card">
+      <img class="ff-access-logo" src="assets/logo.jpg" alt="Fiasco Finance">
+      <h1>🏆 FF Championship</h1>
+      <p>Privat konkurranseside. Skriv inn adgangskoden for å åpne dashboardet.</p>
+
+      <form id="ffAccessForm">
+        <input
+          id="ffAccessCode"
+          class="ff-access-input"
+          type="password"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="4"
+          autocomplete="off"
+          aria-label="Adgangskode"
+          autofocus>
+        <button class="ff-access-button" type="submit">Åpne dashboard</button>
+        <div id="ffAccessError" class="ff-access-error" aria-live="polite"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+  (function setupFFAccessGate() {
+    const ACCESS_CODE = "2020";
+    const STORAGE_KEY = "ff-championship-access-v1";
+
+    function unlockDashboard() {
+      try {
+        localStorage.setItem(STORAGE_KEY, "granted");
+      } catch (e) {}
+
+      document.body.classList.remove("ff-auth-locked");
+
+      // Notify existing iframe/auto-height integrations that layout changed.
+      window.dispatchEvent(new Event("resize"));
+      setTimeout(() => window.dispatchEvent(new Event("resize")), 100);
+      setTimeout(() => window.dispatchEvent(new Event("resize")), 400);
+    }
+
+    try {
+      if (localStorage.getItem(STORAGE_KEY) === "granted") {
+        unlockDashboard();
+      }
+    } catch (e) {}
+
+    window.addEventListener("DOMContentLoaded", function() {
+      const form = document.getElementById("ffAccessForm");
+      const input = document.getElementById("ffAccessCode");
+      const error = document.getElementById("ffAccessError");
+
+      if (!form || !input || !error) return;
+
+      form.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        if (String(input.value || "").trim() === ACCESS_CODE) {
+          error.textContent = "";
+          unlockDashboard();
+        } else {
+          error.textContent = "Feil kode.";
+          input.value = "";
+          input.focus();
+        }
+      });
+    });
+  })();
+  </script>
+
 
   <div class="brand-header">
     <img
@@ -8572,6 +8755,13 @@ function historicalRecords() {
         ).forEach(
           theme => {
 
+            // FF-rekorder sammenligner temaer på tvers av sesonger.
+            // Styringsrente ekskluderes her fordi skalaen (typisk 0,25 pp)
+            // ikke er sammenlignbar med aksjer, indekser, olje osv.
+            if (!includeInHistoricalEstimateStats(theme.theme)) {
+              return;
+            }
+
             if (
               theme.ranking.length >= 2
             ) {
@@ -8606,10 +8796,6 @@ function historicalRecords() {
               ) {
                 smallestThemeMargin = item;
               }
-            }
-
-            if (!includeInHistoricalEstimateStats(theme.theme)) {
-              return;
             }
 
             theme.ranking
@@ -8791,7 +8977,7 @@ function renderHistoricalSection() {
       </div>
 
       <p class="history-note">
-        Historiske rekorder beregnes kun fra sesonger merket Final. FF${activeSeasonYear} påvirker derfor ikke rekordene dersom sesongen fortsatt er Live.
+        Historiske rekorder beregnes kun fra sesonger merket Final. Styringsrente er utelatt fra FF-rekordene fordi skalaen ikke er direkte sammenlignbar med de øvrige temaene. FF${activeSeasonYear} påvirker derfor ikke rekordene dersom sesongen fortsatt er Live.
       </p>
     </div>
   `;
