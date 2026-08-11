@@ -9490,7 +9490,7 @@ function leadOutlookAnalysis() {
     // For percentage-return themes we test ±5 percentage points.
     // For policy-rate-like themes we test ±0.25 percentage points.
     const normalizedTheme =
-      normalizeText(theme);
+      String(theme || "").trim().toLowerCase();
 
     const isRateTheme =
       normalizedTheme.includes("styringsrente") ||
@@ -9598,7 +9598,7 @@ function renderLeadOutlookText() {
 
   const directionText = item => {
     const themeLower =
-      normalizeText(item.theme);
+      String(item.theme || "").trim().toLowerCase();
 
     if (themeLower.includes("olje")) {
       return item.direction === "up"
