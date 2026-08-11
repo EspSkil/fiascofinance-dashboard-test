@@ -2598,6 +2598,95 @@
       color: #aeb7c2;
     }
 
+
+    /* v3.1a hotfix: keep access gate at the top of embedded one.com page.
+       The iframe starts at a temporary height before auto-height settles;
+       vertically centering the gate could therefore place it far down the page. */
+    body.ff-auth-locked {
+      margin-top: 0;
+      padding-top: 0;
+      min-height: 0;
+    }
+
+    body.ff-auth-locked #ffAccessGate {
+      min-height: 0;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 34px;
+      padding-bottom: 34px;
+    }
+
+    @media (max-width: 700px) {
+      body.ff-auth-locked #ffAccessGate {
+        min-height: 0;
+        padding-top: 18px;
+        padding-bottom: 22px;
+      }
+    }
+
+
+    /* v3.1b: robust embedded access gate.
+       Make the gate independent of the iframe's temporary 1200px viewport. */
+    body.ff-auth-locked {
+      height: auto !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+    }
+
+    body.ff-auth-locked #ffAccessGate {
+      box-sizing: border-box;
+      width: 100%;
+      height: auto !important;
+      min-height: 0 !important;
+      margin: 0 !important;
+      padding: 18px 16px 24px !important;
+      display: flex !important;
+      align-items: flex-start !important;
+      justify-content: center !important;
+    }
+
+
+    .theme-trend-period {
+      display: inline-flex;
+      gap: 6px;
+      margin: 4px 0 10px;
+      padding: 3px;
+      border: 1px solid #ddd;
+      border-radius: 999px;
+      background: #f5f5f5;
+    }
+
+    .theme-trend-period button {
+      border: 0;
+      background: transparent;
+      color: #444;
+      border-radius: 999px;
+      padding: 7px 13px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .theme-trend-period button.active {
+      background: #222;
+      color: #fff;
+    }
+
+    body.dark-mode .theme-trend-period {
+      background: #1b222a;
+      border-color: #3b4652;
+    }
+
+    body.dark-mode .theme-trend-period button {
+      color: #dce3ea;
+    }
+
+    body.dark-mode .theme-trend-period button.active {
+      background: #e8edf2;
+      color: #11151a;
+    }
+
   </style>
 </head>
 
@@ -2631,6 +2720,23 @@
     const STORAGE_KEY = "ff-championship-access-code-v2";
     let currentAccessCode = null;
     let accessConfigReady = false;
+
+    function sendLockedGateHeight() {
+      const gate = document.getElementById("ffAccessGate");
+      if (!gate || !document.body.classList.contains("ff-auth-locked")) return;
+
+      const height = Math.ceil(gate.getBoundingClientRect().height + 8);
+
+      if (window.parent && window.parent !== window && height > 0) {
+        window.parent.postMessage(
+          {
+            type: "fiascofinance-dashboard-height",
+            height: height
+          },
+          "*"
+        );
+      }
+    }
 
     function notifyLayoutChanged() {
       window.dispatchEvent(new Event("resize"));
@@ -2673,6 +2779,11 @@
       const error = document.getElementById("ffAccessError");
 
       if (!form || !input || !error) return;
+
+      sendLockedGateHeight();
+      setTimeout(sendLockedGateHeight, 100);
+      setTimeout(sendLockedGateHeight, 500);
+      setTimeout(sendLockedGateHeight, 1200);
 
       form.addEventListener("submit", function(event) {
         event.preventDefault();
@@ -2816,6 +2927,7 @@ let themeTrendVisiblePoints = null;
 let themeTrendTimer = null;
 let themeTrendIsPlaying = false;
 let themeTrendSimulationMode = false;
+let themeTrendPeriod = "total";
 
 
 const chartColors = [
@@ -6805,8 +6917,43 @@ function updateSimulationOutputs() {
 
 
 
+function themeTrendHistoryRows() {
+
+  if (
+    themeTrendPeriod !== "month" ||
+    !currentHistoryRows ||
+    currentHistoryRows.length < 2
+  ) {
+    return currentHistoryRows;
+  }
+
+  const baseline =
+    monthlyBaselineRow(
+      currentHistoryRows
+    );
+
+  if (!baseline) {
+    return currentHistoryRows;
+  }
+
+  const baselineIndex =
+    currentHistoryRows.indexOf(
+      baseline
+    );
+
+  if (baselineIndex < 0) {
+    return currentHistoryRows;
+  }
+
+  return currentHistoryRows.slice(
+    baselineIndex
+  );
+}
+
+
 function themeHistoryPoints(
-  themeRow
+  themeRow,
+  historyRows = currentHistoryRows
 ) {
 
   const competitionRow =
@@ -6816,7 +6963,7 @@ function themeHistoryPoints(
         themeRow.theme
     );
 
-  return currentHistoryRows.map(
+  return historyRows.map(
     row => ({
 
       date:
@@ -7575,6 +7722,9 @@ function renderThemeTrendChart() {
     return;
   }
 
+  const trendRows =
+    themeTrendHistoryRows();
+
 
   const themes =
     currentThemeResults.filter(
@@ -7613,7 +7763,7 @@ function renderThemeTrendChart() {
               : "🎬 Simulering er aktiv. Velg ett tema for å gjøre presentasjonen klar."
           )
         : (
-            `Visning: ${themes.length} av ${currentThemeResults.length} temaer. ` +
+            `${themeTrendPeriod === "month" ? "Periode: 1 mnd. " : "Periode: totalt. "}Visning: ${themes.length} av ${currentThemeResults.length} temaer. ` +
             (
               themes.length === 1
                 ? "Deltakernes estimater vises som stiplede mållinjer."
@@ -7635,16 +7785,16 @@ function renderThemeTrendChart() {
           0,
           Math.min(
             themeTrendVisiblePoints,
-            currentHistoryRows.length
+            trendRows.length
           )
         )
-      : currentHistoryRows.length;
+      : trendRows.length;
 
 
   /* X-aksen skal være statisk under avspilling. Hele perioden vises fra start,
      mens selve temakurven gradvis fylles inn med nye datapunkter. */
   const labels =
-    currentHistoryRows
+    trendRows
       .map(
         row =>
           row["Dato"]
@@ -7659,7 +7809,8 @@ function renderThemeTrendChart() {
 
       const points =
         themeHistoryPoints(
-          themeRow
+          themeRow,
+          trendRows
         );
 
       datasets.push({
@@ -7781,7 +7932,7 @@ function renderThemeTrendChart() {
   const allTrendValues = [];
 
   themes.forEach(themeRow => {
-    themeHistoryPoints(themeRow).forEach(point => {
+    themeHistoryPoints(themeRow, trendRows).forEach(point => {
       if (Number.isFinite(point.change)) {
         allTrendValues.push(point.change * 100);
       }
@@ -8571,6 +8722,21 @@ function showThemeResults(
         Velg ett tema for å vise deltakernes estimater og presentasjonsmodus.
       </p>
 
+      <div class="theme-trend-period" aria-label="Periode for temagraf">
+        <button
+          type="button"
+          id="themeTrendPeriodMonth">
+          1 mnd
+        </button>
+
+        <button
+          type="button"
+          id="themeTrendPeriodTotal"
+          class="active">
+          Totalt
+        </button>
+      </div>
+
       <div class="filter-block">
         <div class="filter-title">
           Temaer
@@ -8670,6 +8836,7 @@ function showThemeResults(
 
 
   themeTrendSimulationMode = false;
+  themeTrendPeriod = "total";
 
   selectedTrendThemes =
     new Set(
@@ -8681,6 +8848,61 @@ function showThemeResults(
 
   themeTrendVisiblePoints =
     null;
+
+  const monthPeriodButton =
+    document.getElementById(
+      "themeTrendPeriodMonth"
+    );
+
+  const totalPeriodButton =
+    document.getElementById(
+      "themeTrendPeriodTotal"
+    );
+
+  function setThemeTrendPeriod(period) {
+
+    stopThemeTrendAnimation();
+
+    themeTrendPeriod =
+      period === "month"
+        ? "month"
+        : "total";
+
+    themeTrendSimulationMode = false;
+    themeTrendVisiblePoints = null;
+
+    if (monthPeriodButton) {
+      monthPeriodButton.classList.toggle(
+        "active",
+        themeTrendPeriod === "month"
+      );
+    }
+
+    if (totalPeriodButton) {
+      totalPeriodButton.classList.toggle(
+        "active",
+        themeTrendPeriod === "total"
+      );
+    }
+
+    renderThemeTrendChart();
+  }
+
+  if (monthPeriodButton) {
+    monthPeriodButton.onclick =
+      () =>
+        setThemeTrendPeriod(
+          "month"
+        );
+  }
+
+  if (totalPeriodButton) {
+    totalPeriodButton.onclick =
+      () =>
+        setThemeTrendPeriod(
+          "total"
+        );
+  }
 
   renderTrendFilterButtons();
   renderThemeTrendChart();
@@ -9843,8 +10065,10 @@ function leadOutlookAnalysis() {
       const simulatedLatest = {
         ...currentLatestRow,
         [theme]:
-          currentValue +
-          test.delta
+          rawValueFromChange(
+            themeResult,
+            currentValue + test.delta
+          )
       };
 
       const simulated =
