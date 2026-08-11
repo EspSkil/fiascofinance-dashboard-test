@@ -148,6 +148,7 @@
     }
 
     #leaderboardSection,
+    #monthSection,
     #chartSection,
     #themeSection,
     #historySection,
@@ -2045,6 +2046,259 @@
       }
     }
 
+
+    /* TEST v2: monthly report */
+    .month-report-panel {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 18px;
+      margin-top: 16px;
+    }
+
+    .month-report-period {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .month-period-main {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .month-period-note {
+      color: #666;
+      font-size: 12px;
+    }
+
+    .month-report-top {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .month-card {
+      background: #f7f7f7;
+      border: 1px solid #e2e2e2;
+      border-radius: 12px;
+      padding: 13px;
+      min-width: 0;
+    }
+
+    .month-card-label {
+      color: #666;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .month-person {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .month-person img {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex: 0 0 44px;
+      border: 1px solid #ddd;
+    }
+
+    .month-person-name {
+      font-weight: 800;
+      font-size: 18px;
+      line-height: 1.1;
+    }
+
+    .month-main-value {
+      margin-top: 7px;
+      font-weight: 800;
+      font-size: 17px;
+    }
+
+    .month-subline {
+      margin-top: 4px;
+      color: #666;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .month-report-lower {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .month-moves {
+      display: grid;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .month-move-row {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 7px 0;
+      border-top: 1px solid #e8e8e8;
+    }
+
+    .month-move-row:first-child {
+      border-top: 0;
+    }
+
+    .month-move-theme {
+      font-weight: 700;
+      min-width: 0;
+    }
+
+    .month-move-value {
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .month-impact-theme {
+      font-size: 18px;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+
+    .month-summary {
+      margin-top: 12px;
+      padding: 14px 16px;
+      border-left: 4px solid #444;
+      background: #f8f8f8;
+      border-radius: 10px;
+      line-height: 1.5;
+    }
+
+    .month-summary strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    body.dark-mode .month-report-panel {
+      background: #181e25;
+      border-color: #303945;
+    }
+
+    body.dark-mode .month-card {
+      background: #222a33;
+      border-color: #303945;
+    }
+
+    body.dark-mode .month-card-label,
+    body.dark-mode .month-subline,
+    body.dark-mode .month-period-note {
+      color: #aeb7c2;
+    }
+
+    body.dark-mode .month-person img {
+      border-color: #46515e;
+    }
+
+    body.dark-mode .month-move-row {
+      border-color: #303945;
+    }
+
+    body.dark-mode .month-summary {
+      background: #171d24;
+      border-color: #64707d;
+    }
+
+    @media (max-width: 800px) {
+      .month-report-panel {
+        padding: 13px;
+      }
+
+      .month-report-top {
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+      }
+
+      .month-card-leader {
+        grid-column: 1 / -1;
+      }
+
+      .month-person img {
+        width: 40px;
+        height: 40px;
+        flex-basis: 40px;
+      }
+
+      .month-person-name {
+        font-size: 17px;
+      }
+
+      .month-main-value {
+        font-size: 16px;
+      }
+
+      .month-report-lower {
+        grid-template-columns: 1fr;
+        gap: 9px;
+      }
+
+      .month-summary {
+        margin-top: 9px;
+        padding: 12px 13px;
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .month-report-period {
+        gap: 4px;
+        margin-bottom: 10px;
+      }
+
+      .month-period-note {
+        width: 100%;
+      }
+
+      .month-card {
+        padding: 10px;
+      }
+
+      .month-card-label {
+        margin-bottom: 6px;
+      }
+
+      .month-person {
+        gap: 7px;
+      }
+
+      .month-person img {
+        width: 34px;
+        height: 34px;
+        flex-basis: 34px;
+      }
+
+      .month-person-name {
+        font-size: 15px;
+      }
+
+      .month-main-value {
+        margin-top: 5px;
+        font-size: 14px;
+      }
+
+      .month-subline {
+        font-size: 11px;
+      }
+    }
+
   </style>
 </head>
 
@@ -2155,6 +2409,7 @@
   <nav class="quick-nav" aria-label="Hurtignavigasjon">
     <div class="quick-nav-inner">
       <a href="#leaderboardSection">🏆 Live</a>
+      <a href="#monthSection">📅 Måned</a>
       <a href="#chartSection">🔍 Analyse</a>
       <a href="#themeSection">📊 Tema</a>
       <a href="#historySection">📈 Race</a>
@@ -2166,6 +2421,7 @@
 
   <div id="summaryCards"></div>
   <div id="leaderboardSection"></div>
+  <div id="monthSection"></div>
   <div id="chartSection"></div>
   <div id="themeSection"></div>
   <div id="historySection"></div>
@@ -8509,7 +8765,7 @@ function selectedSeasonParticipantInfo(
 function estimateDistancePp(value, decimals = 2) {
   return (Number(value) * 100)
     .toFixed(decimals)
-    .replace(".", ",") + " pp";
+    .replace(".", ",") + "%";
 }
 
 
@@ -8984,6 +9240,563 @@ function renderHistoricalSection() {
 }
 
 
+
+// ------------------------------------------------------------
+// TEST v2: Monthly report
+// Compares the latest history row with the row nearest 30 days earlier.
+// ------------------------------------------------------------
+
+function parseCompetitionDate(value) {
+  const text = String(value || "").trim();
+  if (!text) return null;
+
+  let match = text.match(/^(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{4})$/);
+  if (match) {
+    const d = new Date(
+      Number(match[3]),
+      Number(match[2]) - 1,
+      Number(match[1])
+    );
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  match = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (match) {
+    const d = new Date(
+      Number(match[1]),
+      Number(match[2]) - 1,
+      Number(match[3])
+    );
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  const fallback = new Date(text);
+  return Number.isNaN(fallback.getTime()) ? null : fallback;
+}
+
+
+function monthlyBaselineRow(historyRows) {
+  if (!historyRows || historyRows.length < 2) {
+    return null;
+  }
+
+  const latestRow = historyRows[historyRows.length - 1];
+  const latestDate = parseCompetitionDate(latestRow["Dato"]);
+
+  if (!latestDate) {
+    return historyRows[Math.max(0, historyRows.length - 5)];
+  }
+
+  const target = new Date(latestDate);
+  target.setDate(target.getDate() - 30);
+
+  let bestRow = null;
+  let bestDistance = Infinity;
+
+  historyRows
+    .slice(0, -1)
+    .forEach(row => {
+      const d = parseCompetitionDate(row["Dato"]);
+      if (!d || d >= latestDate) return;
+
+      const distance = Math.abs(d.getTime() - target.getTime());
+
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestRow = row;
+      }
+    });
+
+  return bestRow || historyRows[Math.max(0, historyRows.length - 2)];
+}
+
+
+function signedPercentValue(value, decimals = 2) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "–";
+
+  const pct = number * 100;
+  const sign = pct > 0 ? "+" : "";
+
+  return sign +
+    pct.toFixed(decimals).replace(".", ",") +
+    "%";
+}
+
+
+function leaderboardPositionMap(leaderboard) {
+  return Object.fromEntries(
+    leaderboard.map((entry, index) => [
+      entry.person,
+      {
+        rank: index + 1,
+        score: entry.score
+      }
+    ])
+  );
+}
+
+
+function monthlyThemeChanges(
+  competitionRows,
+  participants,
+  startRow,
+  baselineRow,
+  latestRow
+) {
+  const before =
+    calculateCompetition(
+      competitionRows,
+      participants,
+      startRow,
+      baselineRow
+    );
+
+  const after =
+    calculateCompetition(
+      competitionRows,
+      participants,
+      startRow,
+      latestRow
+    );
+
+  const beforeThemes =
+    Object.fromEntries(
+      before.themeResults.map(item => [
+        item.theme,
+        item
+      ])
+    );
+
+  return after.themeResults.map(item => {
+    const previous = beforeThemes[item.theme];
+
+    const delta =
+      item.actualChange -
+      previous.actualChange;
+
+    const participantImpact =
+      participants.map(person => {
+        const beforeContribution =
+          previous.personResults[person].weightedDistance;
+
+        const afterContribution =
+          item.personResults[person].weightedDistance;
+
+        return {
+          person,
+          change:
+            afterContribution -
+            beforeContribution,
+          improvement:
+            beforeContribution -
+            afterContribution
+        };
+      });
+
+    const totalImpact =
+      participantImpact.reduce(
+        (sum, row) =>
+          sum + Math.abs(row.change),
+        0
+      );
+
+    const helped =
+      participantImpact
+        .slice()
+        .sort(
+          (a, b) =>
+            b.improvement -
+            a.improvement
+        )[0];
+
+    const hurt =
+      participantImpact
+        .slice()
+        .sort(
+          (a, b) =>
+            b.change -
+            a.change
+        )[0];
+
+    return {
+      theme: item.theme,
+      delta,
+      absDelta: Math.abs(delta),
+      totalImpact,
+      helped,
+      hurt
+    };
+  });
+}
+
+
+function renderMonthlyReport() {
+  const container =
+    document.getElementById(
+      "monthSection"
+    );
+
+  if (!container) return;
+
+  if (
+    !currentHistoryRows ||
+    currentHistoryRows.length < 2
+  ) {
+    container.innerHTML = `
+      <h2>📅 Månedsrapport</h2>
+      <div class="month-report-panel">
+        <p class="muted">
+          Ikke nok historikk til å lage månedsrapport ennå.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  const baselineRow =
+    monthlyBaselineRow(
+      currentHistoryRows
+    );
+
+  if (!baselineRow) return;
+
+  const before =
+    calculateCompetition(
+      currentCompetitionRows,
+      currentParticipants,
+      currentStartRow,
+      baselineRow
+    );
+
+  const after =
+    currentOfficialResult;
+
+  const beforeMap =
+    leaderboardPositionMap(
+      before.leaderboard
+    );
+
+  const afterMap =
+    leaderboardPositionMap(
+      after.leaderboard
+    );
+
+  const leader =
+    after.leaderboard[0];
+
+  const second =
+    after.leaderboard[1];
+
+  const currentMargin =
+    leader && second
+      ? second.score - leader.score
+      : 0;
+
+  const leaderBefore =
+    beforeMap[leader.person];
+
+  let leaderTrendText = "";
+
+  if (leaderBefore) {
+    if (leaderBefore.rank === 1) {
+      const previousSecond =
+        before.leaderboard[1];
+
+      const previousMargin =
+        previousSecond
+          ? previousSecond.score -
+            leaderBefore.score
+          : 0;
+
+      const marginChange =
+        currentMargin -
+        previousMargin;
+
+      if (Math.abs(marginChange) < 0.00005) {
+        leaderTrendText =
+          `Ledelsen er omtrent uendret fra ${formatPercent(previousMargin)}.`;
+      } else if (marginChange > 0) {
+        leaderTrendText =
+          `Ledelsen har økt fra ${formatPercent(previousMargin)} til ${formatPercent(currentMargin)}.`;
+      } else {
+        leaderTrendText =
+          `Ledelsen har minket fra ${formatPercent(previousMargin)} til ${formatPercent(currentMargin)}.`;
+      }
+    } else {
+      const oldLeader =
+        before.leaderboard[0];
+
+      const deficit =
+        leaderBefore.score -
+        oldLeader.score;
+
+      leaderTrendText =
+        `Ny leder – ${leader.person} var #${leaderBefore.rank} og ${formatPercent(deficit)} bak lederen ved periodestart.`;
+    }
+  }
+
+  const developments =
+    currentParticipants.map(person => {
+      const oldRow = beforeMap[person];
+      const newRow = afterMap[person];
+
+      return {
+        person,
+        oldRank: oldRow.rank,
+        newRank: newRow.rank,
+        oldScore: oldRow.score,
+        newScore: newRow.score,
+        improvement:
+          oldRow.score -
+          newRow.score
+      };
+    });
+
+  const bestDevelopment =
+    developments
+      .slice()
+      .sort(
+        (a, b) =>
+          b.improvement -
+          a.improvement
+      )[0];
+
+  const weakestDevelopment =
+    developments
+      .slice()
+      .sort(
+        (a, b) =>
+          a.improvement -
+          b.improvement
+      )[0];
+
+  const themeChanges =
+    monthlyThemeChanges(
+      currentCompetitionRows,
+      currentParticipants,
+      currentStartRow,
+      baselineRow,
+      currentLatestRow
+    );
+
+  const biggestMoves =
+    themeChanges
+      .slice()
+      .sort(
+        (a, b) =>
+          b.absDelta -
+          a.absDelta
+      )
+      .slice(0, 3);
+
+  const biggestImpact =
+    themeChanges
+      .slice()
+      .sort(
+        (a, b) =>
+          b.totalImpact -
+          a.totalImpact
+      )[0];
+
+  const rankChangeText = item => {
+    if (item.oldRank === item.newRank) {
+      return `#${item.newRank} · uendret plassering`;
+    }
+
+    return `#${item.oldRank} → #${item.newRank}`;
+  };
+
+  const scoreDevelopmentText = item => {
+    const delta =
+      item.newScore -
+      item.oldScore;
+
+    return signedPercentValue(
+      delta
+    );
+  };
+
+  const impactText =
+    biggestImpact
+      ? (
+          biggestImpact.helped &&
+          biggestImpact.hurt &&
+          biggestImpact.helped.person !==
+            biggestImpact.hurt.person
+        )
+          ? `${biggestImpact.theme} har gitt størst samlet utslag i deltakernes score. ${biggestImpact.helped.person} har hatt størst fordel, mens ${biggestImpact.hurt.person} har blitt mest utfordret av utviklingen.`
+          : `${biggestImpact.theme} har gitt størst samlet utslag i deltakernes score i perioden.`
+      : "–";
+
+  const movementSentence =
+    biggestMoves.length
+      ? `De største temabevegelsene har vært ${biggestMoves.map(
+          item =>
+            `${item.theme} (${signedPercentValue(item.delta)})`
+        ).join(", ")}.`
+      : "";
+
+  const summaryText =
+    `${bestDevelopment.person} har hatt best utvikling i perioden og gått ${rankChangeText(bestDevelopment)}. ` +
+    `${weakestDevelopment.person} har hatt svakest utvikling (${rankChangeText(weakestDevelopment)}). ` +
+    `${leader.person} leder nå med ${formatPercent(currentMargin)}. ` +
+    movementSentence;
+
+  container.innerHTML = `
+    <h2>📅 Månedsrapport</h2>
+
+    <div class="month-report-panel">
+
+      <div class="month-report-period">
+        <div class="month-period-main">
+          ${baselineRow["Dato"]} → ${currentLatestRow["Dato"]}
+        </div>
+        <div class="month-period-note">
+          Sammenligner siste status med historikkpunktet nærmest én måned tidligere.
+        </div>
+      </div>
+
+      <div class="month-report-top">
+
+        <div class="month-card month-card-leader">
+          <div class="month-card-label">🏆 Leder nå</div>
+
+          <div class="month-person">
+            <img
+              src="${participantImagePath(leader.person)}"
+              alt="${leader.person}"
+              onerror="this.style.display='none';">
+
+            <div>
+              <div class="month-person-name">${leader.person}</div>
+              <div class="month-subline">
+                Score ${formatPercent(leader.score)}
+              </div>
+            </div>
+          </div>
+
+          <div class="month-main-value">
+            ${formatPercent(currentMargin)} foran #2
+          </div>
+
+          <div class="month-subline">
+            ${leaderTrendText}
+          </div>
+        </div>
+
+
+        <div class="month-card">
+          <div class="month-card-label">🚀 Best utvikling</div>
+
+          <div class="month-person">
+            <img
+              src="${participantImagePath(bestDevelopment.person)}"
+              alt="${bestDevelopment.person}"
+              onerror="this.style.display='none';">
+
+            <div>
+              <div class="month-person-name">${bestDevelopment.person}</div>
+              <div class="month-subline">
+                ${rankChangeText(bestDevelopment)}
+              </div>
+            </div>
+          </div>
+
+          <div class="month-main-value movement-up">
+            ${scoreDevelopmentText(bestDevelopment)}
+          </div>
+
+          <div class="month-subline">
+            Score ${formatPercent(bestDevelopment.oldScore)}
+            → ${formatPercent(bestDevelopment.newScore)}
+          </div>
+        </div>
+
+
+        <div class="month-card">
+          <div class="month-card-label">📉 Svakest utvikling</div>
+
+          <div class="month-person">
+            <img
+              src="${participantImagePath(weakestDevelopment.person)}"
+              alt="${weakestDevelopment.person}"
+              onerror="this.style.display='none';">
+
+            <div>
+              <div class="month-person-name">${weakestDevelopment.person}</div>
+              <div class="month-subline">
+                ${rankChangeText(weakestDevelopment)}
+              </div>
+            </div>
+          </div>
+
+          <div class="month-main-value movement-down">
+            ${scoreDevelopmentText(weakestDevelopment)}
+          </div>
+
+          <div class="month-subline">
+            Score ${formatPercent(weakestDevelopment.oldScore)}
+            → ${formatPercent(weakestDevelopment.newScore)}
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="month-report-lower">
+
+        <div class="month-card">
+          <div class="month-card-label">
+            🔥 Tre største temabevegelser
+          </div>
+
+          <div class="month-moves">
+            ${biggestMoves.map(
+              (item, index) => `
+                <div class="month-move-row">
+                  <div>${index + 1}.</div>
+                  <div class="month-move-theme">
+                    ${item.theme}
+                  </div>
+                  <div class="month-move-value">
+                    ${signedPercentValue(item.delta)}
+                  </div>
+                </div>
+              `
+            ).join("")}
+          </div>
+        </div>
+
+
+        <div class="month-card">
+          <div class="month-card-label">
+            🎯 Mest utslagsgivende tema
+          </div>
+
+          <div class="month-impact-theme">
+            ${biggestImpact ? biggestImpact.theme : "–"}
+          </div>
+
+          <div class="month-subline">
+            ${impactText}
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="month-summary">
+        <strong>📝 Måneden oppsummert</strong>
+        ${summaryText}
+      </div>
+
+    </div>
+  `;
+}
+
+
+
 function activateSeason(year) {
 
   const season =
@@ -9046,6 +9859,8 @@ function activateSeason(year) {
   showLeaderboard(
     season.result.leaderboard
   );
+
+  renderMonthlyReport();
 
   createChartSection(
     season.participants,
@@ -9239,7 +10054,7 @@ async function loadData() {
 
 // v7.7: compact back-to-top buttons on major sections
 (function setupSectionTopButtons(){
-  const ids=["leaderboardSection","chartSection","themeSection","themeTrendSection","themePodiumSection","historySection","simulatorSection","estimatesSection","participantSection","historicalSection"];
+  const ids=["leaderboardSection","monthSection","chartSection","themeSection","themeTrendSection","themePodiumSection","historySection","simulatorSection","estimatesSection","participantSection","historicalSection"];
 
   function goTop(){
     if(typeof window.ffScrollDashboardTop==="function"){
@@ -9292,6 +10107,7 @@ async function loadData() {
 (function setupRobustParentNavigationBridge() {
   const navTargets = {
     leaderboardSection: "Live",
+    monthSection: "Måned",
     chartSection: "Analyse",
     themeSection: "Tema",
     historySection: "Race",
