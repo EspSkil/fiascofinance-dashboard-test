@@ -2687,6 +2687,133 @@
       color: #11151a;
     }
 
+
+    .duel-controls {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      align-items: end;
+      margin: 14px 0;
+    }
+
+    .duel-control label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .duel-control select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      border: 1px solid #d6d6d6;
+      border-radius: 10px;
+      background: #fff;
+      color: #222;
+      font: inherit;
+      font-weight: 700;
+    }
+
+    .duel-vs {
+      padding: 10px 2px;
+      font-weight: 900;
+      color: #777;
+    }
+
+    .duel-score-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .duel-person-card {
+      padding: 14px;
+      border: 1px solid #e2e2e2;
+      border-radius: 14px;
+      background: #fafafa;
+      text-align: center;
+    }
+
+    .duel-person-name {
+      margin-top: 7px;
+      font-weight: 900;
+      font-size: 17px;
+    }
+
+    .duel-score {
+      margin-top: 4px;
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .duel-leader {
+      margin-top: 4px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #666;
+    }
+
+    .duel-summary {
+      margin: 12px 0 16px;
+      padding: 13px 14px;
+      border-radius: 12px;
+      background: #eef1f4;
+      line-height: 1.5;
+    }
+
+    .duel-table .duel-win {
+      font-weight: 900;
+    }
+
+    .duel-table .duel-diff {
+      white-space: nowrap;
+    }
+
+    body.dark-mode .duel-control select,
+    body.dark-mode .duel-person-card {
+      background: #1b222a;
+      color: #e8edf2;
+      border-color: #36414d;
+    }
+
+    body.dark-mode .duel-control label,
+    body.dark-mode .duel-vs,
+    body.dark-mode .duel-leader {
+      color: #aeb7c2;
+    }
+
+    body.dark-mode .duel-summary {
+      background: #222a33;
+    }
+
+    @media (max-width: 600px) {
+      .duel-controls {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .duel-vs {
+        display: none;
+      }
+
+      .duel-score-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .duel-person-card {
+        padding: 11px 8px;
+      }
+
+      .duel-score {
+        font-size: 20px;
+      }
+    }
+
   </style>
 </head>
 
@@ -2855,6 +2982,7 @@
       <a href="#participantSection">👤 Deltaker</a>
       <a href="#estimatesSection">📋 Estimat</a>
       <a href="#investorSection">💰 Investor</a>
+      <a href="#headToHeadSection">⚔️ Duell</a>
     </div>
   </nav>
 
@@ -2867,6 +2995,7 @@
   <div id="simulatorSection"></div>
   <div id="estimatesSection"></div>
   <div id="investorSection"></div>
+  <div id="headToHeadSection"></div>
   <div id="participantSection"></div>
   <div id="historicalSection"></div>
   <div id="controlSection"></div>
@@ -7386,6 +7515,12 @@ function renderThemeTrendAnalysis(
     return;
   }
 
+  const analysisRows =
+    themeTrendHistoryRows();
+
+  const isMonth =
+    themeTrendPeriod === "month";
+
 
   if (!themes.length) {
 
@@ -7455,7 +7590,7 @@ function renderThemeTrendAnalysis(
     themes.length === 1 &&
     themeTrendVisiblePoints !== null &&
     themeTrendVisiblePoints <
-      currentHistoryRows.length
+      analysisRows.length
   ) {
 
     box.innerHTML = `
@@ -7482,14 +7617,30 @@ function renderThemeTrendAnalysis(
 
     const points =
       themeHistoryPoints(
-        themeRow
+        themeRow,
+        analysisRows
       );
+
+    if (!points.length) {
+      return;
+    }
 
     const changes =
       points.map(
         point =>
           point.change
       );
+
+    const first =
+      changes[0];
+
+    const latest =
+      changes[
+        changes.length - 1
+      ];
+
+    const periodMove =
+      latest - first;
 
     const maxChange =
       Math.max(
@@ -7511,22 +7662,10 @@ function renderThemeTrendAnalysis(
         minChange
       );
 
-    const latest =
-      changes[
-        changes.length -
-        1
-      ];
-
     const closestNow =
       closestParticipantToChange(
         themeRow,
         latest
-      );
-
-    const closestAtPeak =
-      closestParticipantToChange(
-        themeRow,
-        maxChange
       );
 
 
@@ -7567,11 +7706,26 @@ function renderThemeTrendAnalysis(
     }
 
 
-    let movementText =
-      `${themeRow.theme} står nå i ${formatPercent(latest)} siden konkurransestart. ` +
-      `Høyeste registrerte nivå var ${formatPercent(maxChange)} ` +
-      `(${points[maxIndex].date}), mens laveste var ${formatPercent(minChange)} ` +
-      `(${points[minIndex].date}).`;
+    let movementText;
+
+    if (isMonth) {
+
+      movementText =
+        `Siste måned (${points[0].date}–${points[points.length - 1].date}) har ${themeRow.theme} ` +
+        `${periodMove >= 0 ? "steget" : "falt"} ${formatPercent(Math.abs(periodMove))}, ` +
+        `fra ${formatPercent(first)} til ${formatPercent(latest)} siden konkurransestart. ` +
+        `I månedsperioden var høyeste registrerte nivå ${formatPercent(maxChange)} ` +
+        `(${points[maxIndex].date}) og laveste ${formatPercent(minChange)} (${points[minIndex].date}).`;
+
+    } else {
+
+      movementText =
+        `${themeRow.theme} står nå i ${formatPercent(latest)} siden konkurransestart. ` +
+        `Høyeste registrerte nivå var ${formatPercent(maxChange)} ` +
+        `(${points[maxIndex].date}), mens laveste var ${formatPercent(minChange)} ` +
+        `(${points[minIndex].date}).`;
+    }
+
 
     if (
       Math.abs(
@@ -7581,23 +7735,45 @@ function renderThemeTrendAnalysis(
     ) {
 
       movementText +=
-        ` Den største endringen mellom to registrerte statuspunkter var ` +
+        ` Den største endringen mellom to registrerte statuspunkter ${isMonth ? "i perioden" : ""} var ` +
         `${formatPercent(Math.abs(largestMove.size))} ` +
         `${largestMove.size >= 0 ? "opp" : "ned"} frem til ${points[largestMove.index].date}.`;
     }
 
 
+    const startClosest =
+      closestParticipantToChange(
+        themeRow,
+        first
+      );
+
     let estimateText =
       `${closestNow.person} er nærmest dagens nivå, ` +
       `${formatPercent(closestNow.distance)} unna sitt estimat.`;
 
-    if (
-      closestAtPeak.person !==
-      closestNow.person
-    ) {
+    if (isMonth) {
+      if (startClosest.person !== closestNow.person) {
+        estimateText +=
+          ` Ved starten av månedsperioden var ${startClosest.person} nærmest, ` +
+          `så utviklingen har endret hvem som ligger best an i temaet.`;
+      } else {
+        estimateText +=
+          ` ${closestNow.person} var også nærmest ved starten av månedsperioden.`;
+      }
+    } else {
+      const closestAtPeak =
+        closestParticipantToChange(
+          themeRow,
+          maxChange
+        );
 
-      estimateText +=
-        ` Rundt årets høyeste registrerte nivå var ${closestAtPeak.person} nærmest.`;
+      if (
+        closestAtPeak.person !==
+        closestNow.person
+      ) {
+        estimateText +=
+          ` Rundt årets høyeste registrerte nivå var ${closestAtPeak.person} nærmest.`;
+      }
     }
 
 
@@ -7612,7 +7788,7 @@ function renderThemeTrendAnalysis(
         <div class="analysis-content">
 
           <div class="analysis-title">
-            💬 Kommentar til ${themeRow.theme}
+            💬 ${isMonth ? "Siste måned · " : "Kommentar til "}${themeRow.theme}
           </div>
 
           <p class="analysis-text">
@@ -7638,7 +7814,8 @@ function renderThemeTrendAnalysis(
 
         const points =
           themeHistoryPoints(
-            themeRow
+            themeRow,
+            analysisRows
           );
 
         const values =
@@ -7647,14 +7824,20 @@ function renderThemeTrendAnalysis(
               point.change
           );
 
+        const first =
+          values[0];
+
+        const latest =
+          values[
+            values.length - 1
+          ];
+
         return {
           theme:
             themeRow.theme,
-          latest:
-            values[
-              values.length -
-              1
-            ],
+          latest,
+          periodMove:
+            latest - first,
           range:
             Math.max(
               ...values
@@ -7670,15 +7853,15 @@ function renderThemeTrendAnalysis(
   const strongest =
     [...stats].sort(
       (a, b) =>
-        b.latest -
-        a.latest
+        (isMonth ? b.periodMove : b.latest) -
+        (isMonth ? a.periodMove : a.latest)
     )[0];
 
   const weakest =
     [...stats].sort(
       (a, b) =>
-        a.latest -
-        b.latest
+        (isMonth ? a.periodMove : a.latest) -
+        (isMonth ? b.periodMove : b.latest)
     )[0];
 
   const volatile =
@@ -7694,22 +7877,25 @@ function renderThemeTrendAnalysis(
       <div class="analysis-content">
 
         <div class="analysis-title">
-          💬 Kommentar til valgte temaer
+          💬 ${isMonth ? "Kommentar · siste måned" : "Kommentar til valgte temaer"}
         </div>
 
         <p class="analysis-text">
-          ${strongest.theme} har sterkest utvikling blant de valgte temaene
-          med ${formatPercent(strongest.latest)}, mens ${weakest.theme}
-          ligger lavest med ${formatPercent(weakest.latest)}.
-          ${volatile.theme} har hatt størst spenn mellom høyeste og laveste
-          registrerte nivå, ${formatPercent(volatile.range)}.
+          ${
+            isMonth
+              ? `${strongest.theme} har hatt sterkest utvikling i månedsperioden med ${formatPercent(strongest.periodMove)}, ` +
+                `mens ${weakest.theme} har hatt svakest utvikling med ${formatPercent(weakest.periodMove)}. ` +
+                `${volatile.theme} har hatt størst spenn mellom høyeste og laveste registrerte nivå i perioden, ${formatPercent(volatile.range)}.`
+              : `${strongest.theme} har sterkest utvikling blant de valgte temaene med ${formatPercent(strongest.latest)}, ` +
+                `mens ${weakest.theme} ligger lavest med ${formatPercent(weakest.latest)}. ` +
+                `${volatile.theme} har hatt størst spenn mellom høyeste og laveste registrerte nivå, ${formatPercent(volatile.range)}.`
+          }
         </p>
 
       </div>
     </div>
   `;
 }
-
 
 function renderThemeTrendChart() {
 
@@ -10977,6 +11163,397 @@ function renderInvestorSection() {
 }
 
 
+
+let selectedDuelA = null;
+let selectedDuelB = null;
+
+
+function duelParticipantScore(person) {
+
+  if (
+    !currentOfficialResult ||
+    !currentOfficialResult.leaderboard
+  ) {
+    return null;
+  }
+
+  const row =
+    currentOfficialResult.leaderboard.find(
+      item =>
+        item.person === person
+    );
+
+  return row
+    ? Number(row.score)
+    : null;
+}
+
+
+function duelThemeRows(personA, personB) {
+
+  return currentThemeResults.map(
+    theme => {
+
+      const a =
+        theme.personResults[
+          personA
+        ];
+
+      const b =
+        theme.personResults[
+          personB
+        ];
+
+      const aScore =
+        a
+          ? Number(
+              a.weightedDistance
+            )
+          : 0;
+
+      const bScore =
+        b
+          ? Number(
+              b.weightedDistance
+            )
+          : 0;
+
+      const advantage =
+        bScore - aScore;
+
+      return {
+        theme:
+          theme.theme,
+        actual:
+          Number(
+            theme.actualChange
+          ),
+        aPrediction:
+          a
+            ? Number(
+                a.prediction
+              )
+            : 0,
+        bPrediction:
+          b
+            ? Number(
+                b.prediction
+              )
+            : 0,
+        aScore,
+        bScore,
+        advantage,
+        winner:
+          Math.abs(
+            advantage
+          ) < 0.0000001
+            ? "Lik"
+            : advantage > 0
+              ? personA
+              : personB
+      };
+    }
+  );
+}
+
+
+function renderHeadToHead() {
+
+  const container =
+    document.getElementById(
+      "headToHeadSection"
+    );
+
+  if (
+    !container ||
+    !currentParticipants ||
+    currentParticipants.length < 2
+  ) {
+    return;
+  }
+
+  if (
+    !selectedDuelA ||
+    !currentParticipants.includes(
+      selectedDuelA
+    )
+  ) {
+    selectedDuelA =
+      currentOfficialResult.leaderboard[0]
+        ? currentOfficialResult.leaderboard[0].person
+        : currentParticipants[0];
+  }
+
+  if (
+    !selectedDuelB ||
+    selectedDuelB === selectedDuelA ||
+    !currentParticipants.includes(
+      selectedDuelB
+    )
+  ) {
+    selectedDuelB =
+      currentOfficialResult.leaderboard.find(
+        row =>
+          row.person !==
+          selectedDuelA
+      )?.person ||
+      currentParticipants.find(
+        person =>
+          person !==
+          selectedDuelA
+      );
+  }
+
+
+  const scoreA =
+    duelParticipantScore(
+      selectedDuelA
+    );
+
+  const scoreB =
+    duelParticipantScore(
+      selectedDuelB
+    );
+
+  const rows =
+    duelThemeRows(
+      selectedDuelA,
+      selectedDuelB
+    );
+
+  const leader =
+    scoreA <= scoreB
+      ? selectedDuelA
+      : selectedDuelB;
+
+  const trailer =
+    leader === selectedDuelA
+      ? selectedDuelB
+      : selectedDuelA;
+
+  const gap =
+    Math.abs(
+      scoreA - scoreB
+    );
+
+  const decisive =
+    [...rows]
+      .sort(
+        (a, b) =>
+          Math.abs(
+            b.advantage
+          ) -
+          Math.abs(
+            a.advantage
+          )
+      );
+
+  const leaderEdges =
+    decisive.filter(
+      row =>
+        row.winner ===
+        leader
+    );
+
+  const trailerEdges =
+    decisive.filter(
+      row =>
+        row.winner ===
+        trailer
+    );
+
+  const keyLead =
+    leaderEdges[0];
+
+  const keyChase =
+    trailerEdges[0];
+
+  const optionHtml =
+    person =>
+      currentParticipants.map(
+        name => `
+          <option
+            value="${name}"
+            ${name === person ? "selected" : ""}>
+            ${name}
+          </option>
+        `
+      ).join("");
+
+
+  let summary =
+    `${leader} leder duellen med ${formatPercent(gap)} lavere score enn ${trailer}.`;
+
+  if (keyLead) {
+    summary +=
+      ` Største fordel kommer fra ${keyLead.theme}, der ${leader} har ${formatPercent(Math.abs(keyLead.advantage))} lavere vektet avvik.`;
+  }
+
+  if (keyChase) {
+    summary +=
+      ` ${trailer} har sin største relative fordel i ${keyChase.theme}, som derfor er et viktig tema dersom gapet skal tettes.`;
+  }
+
+
+  container.innerHTML = `
+    <section class="section-card">
+
+      <div class="section-heading-row">
+        <div>
+          <h2>⚔️ Head-to-head</h2>
+          <p class="section-subtitle">
+            Sammenlign to deltakere og se hvilke temaer som avgjør forskjellen.
+          </p>
+        </div>
+        ${topButtonHtml()}
+      </div>
+
+      <div class="duel-controls">
+
+        <div class="duel-control">
+          <label for="duelPersonA">Deltaker 1</label>
+          <select id="duelPersonA">
+            ${optionHtml(selectedDuelA)}
+          </select>
+        </div>
+
+        <div class="duel-vs">VS</div>
+
+        <div class="duel-control">
+          <label for="duelPersonB">Deltaker 2</label>
+          <select id="duelPersonB">
+            ${optionHtml(selectedDuelB)}
+          </select>
+        </div>
+
+      </div>
+
+      <div class="duel-score-grid">
+
+        <div class="duel-person-card">
+          ${avatarHtml(selectedDuelA, "avatar-md")}
+          <div class="duel-person-name">${selectedDuelA}</div>
+          <div class="duel-score">${formatPercent(scoreA)}</div>
+          <div class="duel-leader">
+            ${selectedDuelA === leader ? "🏆 Leder duellen" : `${formatPercent(gap)} bak`}
+          </div>
+        </div>
+
+        <div class="duel-person-card">
+          ${avatarHtml(selectedDuelB, "avatar-md")}
+          <div class="duel-person-name">${selectedDuelB}</div>
+          <div class="duel-score">${formatPercent(scoreB)}</div>
+          <div class="duel-leader">
+            ${selectedDuelB === leader ? "🏆 Leder duellen" : `${formatPercent(gap)} bak`}
+          </div>
+        </div>
+
+      </div>
+
+      <div class="duel-summary">
+        <strong>Hva avgjør duellen?</strong><br>
+        ${summary}
+      </div>
+
+      <div class="table-wrap duel-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Tema</th>
+              <th>Fasit</th>
+              <th>${selectedDuelA}</th>
+              <th>${selectedDuelB}</th>
+              <th>Fordel</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${decisive.map(row => `
+              <tr>
+                <td>${row.theme}</td>
+                <td>${formatPercent(row.actual)}</td>
+                <td>${formatPercent(row.aPrediction)}</td>
+                <td>${formatPercent(row.bPrediction)}</td>
+                <td class="duel-diff ${row.winner !== "Lik" ? "duel-win" : ""}">
+                  ${
+                    row.winner === "Lik"
+                      ? "Lik"
+                      : `${row.winner} · ${formatPercent(Math.abs(row.advantage))}`
+                  }
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="investor-note">
+        Fordel viser forskjellen i vektet avvik i det enkelte temaet.
+        Lavere samlet score er best.
+      </div>
+
+    </section>
+  `;
+
+
+  const selectA =
+    document.getElementById(
+      "duelPersonA"
+    );
+
+  const selectB =
+    document.getElementById(
+      "duelPersonB"
+    );
+
+  if (selectA) {
+    selectA.addEventListener(
+      "change",
+      () => {
+        selectedDuelA =
+          selectA.value;
+
+        if (
+          selectedDuelA ===
+          selectedDuelB
+        ) {
+          selectedDuelB =
+            currentParticipants.find(
+              person =>
+                person !==
+                selectedDuelA
+            );
+        }
+
+        renderHeadToHead();
+      }
+    );
+  }
+
+  if (selectB) {
+    selectB.addEventListener(
+      "change",
+      () => {
+        selectedDuelB =
+          selectB.value;
+
+        if (
+          selectedDuelB ===
+          selectedDuelA
+        ) {
+          selectedDuelA =
+            currentParticipants.find(
+              person =>
+                person !==
+                selectedDuelB
+            );
+        }
+
+        renderHeadToHead();
+      }
+    );
+  }
+}
+
 function activateSeason(year) {
 
   const season =
@@ -10991,6 +11568,8 @@ function activateSeason(year) {
   activeSeasonYear = year;
   activeInvestorPeriod = "year";
   selectedInvestorParticipant = null;
+  selectedDuelA = null;
+  selectedDuelB = null;
 
   currentParticipants =
     season.participants;
@@ -11057,6 +11636,7 @@ function activateSeason(year) {
   createSimulatorSection();
   showEstimates();
   renderInvestorSection();
+  renderHeadToHead();
   renderParticipantProfile();
   renderHistoricalSection();
 
@@ -11243,7 +11823,7 @@ async function loadData() {
 
 // v7.7: compact back-to-top buttons on major sections
 (function setupSectionTopButtons(){
-  const ids=["leaderboardSection","monthSection","chartSection","themeSection","themeTrendSection","themePodiumSection","historySection","simulatorSection","estimatesSection","investorSection","participantSection","historicalSection"];
+  const ids=["leaderboardSection","monthSection","chartSection","themeSection","themeTrendSection","themePodiumSection","historySection","simulatorSection","estimatesSection","investorSection","headToHeadSection","participantSection","historicalSection"];
 
   function goTop(){
     if(typeof window.ffScrollDashboardTop==="function"){
@@ -11303,7 +11883,8 @@ async function loadData() {
     simulatorSection: "Hva hvis?",
     participantSection: "Deltaker",
     estimatesSection: "Estimat",
-    investorSection: "Investor"
+    investorSection: "Investor",
+    headToHeadSection: "Duell"
   };
 
   let externalNavigationEnabled = false;
