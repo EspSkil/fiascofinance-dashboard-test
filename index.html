@@ -2944,6 +2944,103 @@
       }
     }
 
+
+    /* TEST v3.6: compact Duel layout on mobile */
+    @media (max-width: 600px) {
+
+      #headToHeadSection .section-card > div:first-child {
+        width: 100%;
+      }
+
+      #headToHeadSection .section-card > div:first-child h2 {
+        display: block;
+        width: 100%;
+        margin-bottom: 6px;
+        white-space: normal;
+      }
+
+      #headToHeadSection .section-card > div:first-child .section-subtitle {
+        width: 100%;
+        max-width: none;
+        margin-top: 0;
+      }
+
+      .duel-score-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .duel-person-card {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr) auto;
+        grid-template-areas:
+          "avatar name score"
+          "status status status";
+        align-items: center;
+        column-gap: 9px;
+        row-gap: 4px;
+        text-align: left;
+        padding: 10px 11px;
+      }
+
+      .duel-person-card .avatar {
+        grid-area: avatar;
+        width: 44px;
+        height: 44px;
+        justify-self: start;
+      }
+
+      .duel-person-name {
+        grid-area: name;
+        margin-top: 0;
+        font-size: 15px;
+        line-height: 1.15;
+      }
+
+      .duel-score {
+        grid-area: score;
+        margin-top: 0;
+        font-size: 18px;
+        line-height: 1.1;
+        justify-self: end;
+        white-space: nowrap;
+      }
+
+      .duel-leader {
+        grid-area: status;
+        margin-top: 1px;
+        padding-top: 5px;
+        border-top: 1px solid #e5e5e5;
+        font-size: 11px;
+        line-height: 1.2;
+        text-align: left;
+      }
+
+      body.dark-mode .duel-leader {
+        border-color: #303945;
+      }
+
+      .duel-controls {
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .duel-control select {
+        padding: 8px 9px;
+        font-size: 13px;
+      }
+
+      .duel-summary {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        padding: 10px 11px;
+      }
+
+      .duel-pivots {
+        margin-top: 10px;
+      }
+    }
+
   </style>
 </head>
 
