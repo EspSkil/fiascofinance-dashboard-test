@@ -2814,6 +2814,89 @@
       }
     }
 
+
+    .duel-pivots {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 12px;
+      margin: 14px 0 16px;
+    }
+
+    .duel-pivot-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 13px 14px;
+      background: #f8f8f8;
+    }
+
+    .duel-pivot-title {
+      font-weight: 900;
+      margin-bottom: 5px;
+    }
+
+    .duel-pivot-subtitle {
+      color: #666;
+      font-size: 12px;
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+
+    .duel-pivot-item {
+      padding: 9px 0;
+      border-top: 1px solid #e5e5e5;
+      line-height: 1.45;
+    }
+
+    .duel-pivot-item:first-of-type {
+      border-top: 0;
+      padding-top: 2px;
+    }
+
+    .duel-pivot-theme {
+      font-weight: 900;
+      margin-bottom: 2px;
+    }
+
+    .duel-pivot-meta {
+      color: #666;
+      font-size: 12px;
+    }
+
+    .duel-neutral-note {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #eef1f4;
+      color: #56606b;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    body.dark-mode .duel-pivot-card {
+      background: #1b222a;
+      border-color: #36414d;
+    }
+
+    body.dark-mode .duel-pivot-subtitle,
+    body.dark-mode .duel-pivot-meta {
+      color: #aeb7c2;
+    }
+
+    body.dark-mode .duel-pivot-item {
+      border-color: #303945;
+    }
+
+    body.dark-mode .duel-neutral-note {
+      background: #222a33;
+      color: #b9c2cb;
+    }
+
+    @media (max-width: 760px) {
+      .duel-pivots {
+        grid-template-columns: 1fr;
+        gap: 9px;
+      }
+    }
+
   </style>
 </head>
 
@@ -11191,6 +11274,9 @@ function duelParticipantScore(person) {
 
 function duelThemeRows(personA, personB) {
 
+  const EPS =
+    0.0000001;
+
   return currentThemeResults.map(
     theme => {
 
@@ -11203,6 +11289,30 @@ function duelThemeRows(personA, personB) {
         theme.personResults[
           personB
         ];
+
+      const aPrediction =
+        a
+          ? Number(
+              a.prediction
+            )
+          : 0;
+
+      const bPrediction =
+        b
+          ? Number(
+              b.prediction
+            )
+          : 0;
+
+      const actual =
+        Number(
+          theme.actualChange
+        );
+
+      const weight =
+        Number(
+          theme.weight
+        ) || 0;
 
       const aScore =
         a
@@ -11221,32 +11331,158 @@ function duelThemeRows(personA, personB) {
       const advantage =
         bScore - aScore;
 
+      const lowerPrediction =
+        Math.min(
+          aPrediction,
+          bPrediction
+        );
+
+      const higherPrediction =
+        Math.max(
+          aPrediction,
+          bPrediction
+        );
+
+      const lowerPerson =
+        aPrediction <= bPrediction
+          ? personA
+          : personB;
+
+      const higherPerson =
+        aPrediction <= bPrediction
+          ? personB
+          : personA;
+
+      const predictionGap =
+        Math.abs(
+          aPrediction -
+          bPrediction
+        );
+
+      const samePrediction =
+        predictionGap <= EPS;
+
+      const inside =
+        !samePrediction &&
+        actual >
+          lowerPrediction + EPS &&
+        actual <
+          higherPrediction - EPS;
+
+      const onLower =
+        !samePrediction &&
+        Math.abs(
+          actual -
+          lowerPrediction
+        ) <= EPS;
+
+      const onHigher =
+        !samePrediction &&
+        Math.abs(
+          actual -
+          higherPrediction
+        ) <= EPS;
+
+      let pivotType =
+        "none";
+
+      let pivotDistance =
+        Infinity;
+
+      let pivotDirection =
+        null;
+
+      let afterPivotFavours =
+        null;
+
+      if (samePrediction) {
+
+        pivotType =
+          "same";
+
+      } else if (
+        inside ||
+        onLower ||
+        onHigher
+      ) {
+
+        pivotType =
+          "direct";
+
+        pivotDistance =
+          0;
+
+      } else if (
+        actual <
+        lowerPrediction
+      ) {
+
+        pivotType =
+          "latent";
+
+        pivotDistance =
+          lowerPrediction -
+          actual;
+
+        pivotDirection =
+          "opp";
+
+        // Below both estimates, movement up affects both equally
+        // until the lower estimate is crossed. Beyond it,
+        // further upside favours the participant with the higher estimate.
+        afterPivotFavours =
+          higherPerson;
+
+      } else if (
+        actual >
+        higherPrediction
+      ) {
+
+        pivotType =
+          "latent";
+
+        pivotDistance =
+          actual -
+          higherPrediction;
+
+        pivotDirection =
+          "ned";
+
+        // Above both estimates, movement down affects both equally
+        // until the higher estimate is crossed. Beyond it,
+        // further downside favours the participant with the lower estimate.
+        afterPivotFavours =
+          lowerPerson;
+      }
+
+      const directImpactPotential =
+        predictionGap *
+        weight;
+
       return {
         theme:
           theme.theme,
-        actual:
-          Number(
-            theme.actualChange
-          ),
-        aPrediction:
-          a
-            ? Number(
-                a.prediction
-              )
-            : 0,
-        bPrediction:
-          b
-            ? Number(
-                b.prediction
-              )
-            : 0,
+        actual,
+        weight,
+        aPrediction,
+        bPrediction,
         aScore,
         bScore,
         advantage,
+        lowerPrediction,
+        higherPrediction,
+        lowerPerson,
+        higherPerson,
+        predictionGap,
+        pivotType,
+        pivotDistance,
+        pivotDirection,
+        afterPivotFavours,
+        directImpactPotential,
         winner:
           Math.abs(
             advantage
-          ) < 0.0000001
+          ) < EPS
             ? "Lik"
             : advantage > 0
               ? personA
@@ -11255,7 +11491,6 @@ function duelThemeRows(personA, personB) {
     }
   );
 }
-
 
 function renderHeadToHead() {
 
@@ -11348,25 +11583,39 @@ function renderHeadToHead() {
           )
       );
 
-  const leaderEdges =
-    decisive.filter(
+  const directPivots =
+    rows
+      .filter(
+        row =>
+          row.pivotType ===
+          "direct"
+      )
+      .sort(
+        (a, b) =>
+          b.directImpactPotential -
+          a.directImpactPotential
+      );
+
+  const latentPivots =
+    rows
+      .filter(
+        row =>
+          row.pivotType ===
+          "latent"
+      )
+      .sort(
+        (a, b) =>
+          a.pivotDistance -
+          b.pivotDistance
+      );
+
+  const sameEstimateThemes =
+    rows.filter(
       row =>
-        row.winner ===
-        leader
+        row.pivotType ===
+        "same"
     );
 
-  const trailerEdges =
-    decisive.filter(
-      row =>
-        row.winner ===
-        trailer
-    );
-
-  const keyLead =
-    leaderEdges[0];
-
-  const keyChase =
-    trailerEdges[0];
 
   const optionHtml =
     person =>
@@ -11381,17 +11630,83 @@ function renderHeadToHead() {
       ).join("");
 
 
-  let summary =
-    `${leader} leder duellen med ${formatPercent(gap)} lavere score enn ${trailer}.`;
+  function directPivotText(row) {
 
-  if (keyLead) {
-    summary +=
-      ` Største fordel kommer fra ${keyLead.theme}, der ${leader} har ${formatPercent(Math.abs(keyLead.advantage))} lavere vektet avvik.`;
+    const lower =
+      row.lowerPerson;
+
+    const higher =
+      row.higherPerson;
+
+    if (
+      Math.abs(
+        row.actual -
+        row.lowerPrediction
+      ) <= 0.0000001
+    ) {
+      return (
+        `Fasit ligger akkurat på ${lower} sitt estimat. ` +
+        `Oppgang herfra favoriserer ${higher}, mens fall favoriserer ${lower}.`
+      );
+    }
+
+    if (
+      Math.abs(
+        row.actual -
+        row.higherPrediction
+      ) <= 0.0000001
+    ) {
+      return (
+        `Fasit ligger akkurat på ${higher} sitt estimat. ` +
+        `Videre oppgang favoriserer ${higher}, mens fall favoriserer ${lower}.`
+      );
+    }
+
+    return (
+      `Fasit ligger mellom estimatene. ` +
+      `Oppgang favoriserer ${higher}, mens fall favoriserer ${lower}.`
+    );
   }
 
-  if (keyChase) {
+
+  function latentPivotText(row) {
+
+    const directionWord =
+      row.pivotDirection === "opp"
+        ? "stige"
+        : "falle";
+
+    const movementWord =
+      row.pivotDirection === "opp"
+        ? "oppgang"
+        : "fall";
+
+    return (
+      `Fasit ligger ${row.pivotDirection === "opp" ? "under" : "over"} begge estimatene. ` +
+      `Et moderat ${movementWord} påvirker derfor begge omtrent likt. ` +
+      `${row.theme} må ${directionWord} ca. ${formatPercent(row.pivotDistance)} ` +
+      `før fasit når nærmeste estimat; videre bevegelse i samme retning begynner da å favorisere ${row.afterPivotFavours}.`
+    );
+  }
+
+
+  let summary =
+    `${leader} leder duellen med ${formatPercent(gap)} lavere samlet score enn ${trailer}.`;
+
+  if (directPivots.length) {
+
     summary +=
-      ` ${trailer} har sin største relative fordel i ${keyChase.theme}, som derfor er et viktig tema dersom gapet skal tettes.`;
+      ` ${directPivots[0].theme} er et direkte vippepunkt fordi dagens fasit ligger mellom de to estimatene.`;
+
+  } else if (latentPivots.length) {
+
+    summary +=
+      ` Ingen temaer har fasit mellom estimatene akkurat nå. Nærmeste potensielle vippepunkt er ${latentPivots[0].theme}.`;
+
+  } else {
+
+    summary +=
+      ` Deltakerne har svært like estimater i temaene, så få markedsbevegelser skiller dem direkte.`;
   }
 
 
@@ -11401,7 +11716,7 @@ function renderHeadToHead() {
       <div>
         <h2>⚔️ Head-to-head</h2>
         <p class="section-subtitle">
-          Sammenlign to deltakere og se hvilke temaer som avgjør forskjellen.
+          Sammenlign to deltakere: hvem leder nå, og hvilke markedsbevegelser kan faktisk endre duellen?
         </p>
       </div>
 
@@ -11452,6 +11767,93 @@ function renderHeadToHead() {
         ${summary}
       </div>
 
+
+      <div class="duel-pivots">
+
+        <div class="duel-pivot-card">
+
+          <div class="duel-pivot-title">
+            🎯 Direkte vippepunkter
+          </div>
+
+          <div class="duel-pivot-subtitle">
+            Temaer hvor fasit allerede ligger mellom estimatene. Her endrer neste bevegelse direkte forholdet mellom deltakerne.
+          </div>
+
+          ${
+            directPivots.length
+              ? directPivots.map(row => `
+                  <div class="duel-pivot-item">
+                    <div class="duel-pivot-theme">
+                      ${row.theme}
+                    </div>
+                    <div>
+                      ${directPivotText(row)}
+                    </div>
+                    <div class="duel-pivot-meta">
+                      ${row.lowerPerson}: ${formatPercent(row.lowerPrediction)}
+                      · Fasit: ${formatPercent(row.actual)}
+                      · ${row.higherPerson}: ${formatPercent(row.higherPrediction)}
+                    </div>
+                  </div>
+                `).join("")
+              : `
+                  <div class="duel-neutral-note">
+                    Ingen direkte vippepunkter akkurat nå – fasit ligger ikke mellom de to estimatene i noen temaer.
+                  </div>
+                `
+          }
+
+        </div>
+
+
+        <div class="duel-pivot-card">
+
+          <div class="duel-pivot-title">
+            👀 Neste vippepunkt
+          </div>
+
+          <div class="duel-pivot-subtitle">
+            Temaer hvor fasit ligger utenfor begge estimatene. Først når nærmeste estimat krysses begynner videre bevegelse å endre duellen.
+          </div>
+
+          ${
+            latentPivots.length
+              ? latentPivots.slice(0, 3).map(row => `
+                  <div class="duel-pivot-item">
+                    <div class="duel-pivot-theme">
+                      ${row.theme}
+                    </div>
+                    <div>
+                      ${latentPivotText(row)}
+                    </div>
+                    <div class="duel-pivot-meta">
+                      Avstand til vippepunkt: ${formatPercent(row.pivotDistance)}
+                    </div>
+                  </div>
+                `).join("")
+              : `
+                  <div class="duel-neutral-note">
+                    Ingen latente vippepunkter å vise akkurat nå.
+                  </div>
+                `
+          }
+
+          ${
+            sameEstimateThemes.length
+              ? `
+                  <div class="duel-pivot-meta" style="margin-top:10px;">
+                    Nesten identiske estimater: ${sameEstimateThemes.map(row => row.theme).join(", ")}.
+                  </div>
+                `
+              : ""
+          }
+
+        </div>
+
+      </div>
+
+
       <div class="table-wrap duel-table">
         <table>
           <thead>
@@ -11460,7 +11862,7 @@ function renderHeadToHead() {
               <th>Fasit</th>
               <th>${selectedDuelA}</th>
               <th>${selectedDuelB}</th>
-              <th>Fordel</th>
+              <th>Fordel nå</th>
             </tr>
           </thead>
           <tbody>
@@ -11484,8 +11886,8 @@ function renderHeadToHead() {
       </div>
 
       <div class="investor-note">
-        Fordel viser forskjellen i vektet avvik i det enkelte temaet.
-        Lavere samlet score er best.
+        «Fordel nå» viser forskjellen i vektet avvik i dagens FF-score.
+        Vippepunkt-analysen ser separat på hvor fasit ligger i forhold til de to estimatene.
       </div>
 
     </section>
