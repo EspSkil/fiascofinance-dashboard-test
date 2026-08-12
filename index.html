@@ -3041,6 +3041,122 @@
       }
     }
 
+
+    /* TEST v3.6a: fix Duel mobile heading + align each participant under its dropdown */
+    @media (max-width: 600px) {
+
+      /* The global ↑ Topp helper turns this heading wrapper into flex.
+         Override it for Duel so title uses the width and subtitle sits below. */
+      #headToHeadSection .ff-section-heading-row {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+          "title top"
+          "subtitle subtitle";
+        column-gap: 8px;
+        row-gap: 3px;
+        width: 100%;
+        align-items: start;
+      }
+
+      #headToHeadSection .ff-section-heading-row h2 {
+        grid-area: title;
+        width: auto;
+        margin: 0;
+        min-width: 0;
+        white-space: normal;
+      }
+
+      #headToHeadSection .ff-section-heading-row .section-subtitle {
+        grid-area: subtitle;
+        width: 100%;
+        max-width: none;
+        margin: 0;
+      }
+
+      #headToHeadSection .ff-section-heading-row .ff-section-top-btn {
+        grid-area: top;
+        align-self: start;
+        margin-left: 0;
+        margin-top: 2px;
+      }
+
+      /* Keep the two score cards in the same two columns as the selectors. */
+      #headToHeadSection .duel-score-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      #headToHeadSection .duel-person-card {
+        display: grid;
+        grid-template-columns: 36px minmax(0, 1fr) auto;
+        grid-template-areas:
+          "avatar name score"
+          "status status status";
+        align-items: center;
+        column-gap: 6px;
+        row-gap: 4px;
+        min-width: 0;
+        padding: 9px 8px;
+      }
+
+      #headToHeadSection .duel-person-card .avatar {
+        grid-area: avatar;
+        width: 36px;
+        height: 36px;
+      }
+
+      #headToHeadSection .duel-person-name {
+        grid-area: name;
+        min-width: 0;
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      #headToHeadSection .duel-score {
+        grid-area: score;
+        margin: 0;
+        font-size: 15px;
+        line-height: 1;
+        white-space: nowrap;
+        justify-self: end;
+      }
+
+      #headToHeadSection .duel-leader {
+        grid-area: status;
+        margin: 0;
+        padding-top: 5px;
+        font-size: 10px;
+        line-height: 1.15;
+      }
+    }
+
+    @media (max-width: 390px) {
+      #headToHeadSection .duel-person-card {
+        grid-template-columns: 32px minmax(0, 1fr) auto;
+        column-gap: 5px;
+        padding-left: 6px;
+        padding-right: 6px;
+      }
+
+      #headToHeadSection .duel-person-card .avatar {
+        width: 32px;
+        height: 32px;
+      }
+
+      #headToHeadSection .duel-person-name {
+        font-size: 12px;
+      }
+
+      #headToHeadSection .duel-score {
+        font-size: 14px;
+      }
+    }
+
   </style>
 </head>
 
