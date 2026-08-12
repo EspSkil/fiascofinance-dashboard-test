@@ -2897,6 +2897,53 @@
       }
     }
 
+
+    .duel-summary,
+    .duel-pivot-card,
+    .duel-person-card {
+      font-size: 14px;
+    }
+
+    .duel-pivot-card {
+      padding: 11px 12px;
+    }
+
+    .duel-pivot-item {
+      padding: 7px 0;
+    }
+
+    .duel-pivot-title {
+      font-size: 16px;
+    }
+
+    .duel-pivot-subtitle,
+    .duel-pivot-meta {
+      font-size: 11px;
+    }
+
+    @media (max-width: 600px) {
+      .duel-summary,
+      .duel-pivot-card,
+      .duel-person-card {
+        font-size: 13px;
+      }
+
+      .duel-pivot-title {
+        font-size: 15px;
+      }
+
+      .duel-pivot-subtitle,
+      .duel-pivot-meta {
+        font-size: 10px;
+      }
+
+      .duel-table th,
+      .duel-table td {
+        padding: 7px 6px;
+        font-size: 12px;
+      }
+    }
+
   </style>
 </head>
 
@@ -3950,8 +3997,8 @@ function renderLiveAnalysis(
 
     paragraph1 =
       fullSelection
-        ? `<strong>${leader.person}</strong> leder med ${formatPercent(gap)} foran ${second.person}.`
-        : `<strong>${leader.person}</strong> leder blant de valgte deltakerne og temaene med ${formatPercent(gap)} foran ${second.person}.`;
+        ? `<strong>${leader.person}</strong> leder med ${duelPercent(gap)} foran ${second.person}.`
+        : `<strong>${leader.person}</strong> leder blant de valgte deltakerne og temaene med ${duelPercent(gap)} foran ${second.person}.`;
 
 
     const drivers =
@@ -4176,7 +4223,7 @@ function renderSimulatorAnalysis(
         : `går fra ${oldRank}. til ${newRank}. plass`;
 
     paragraph1 =
-      `<strong>${leader.person}</strong> ${movement} og leder scenarioet med ${formatPercent(gap)} foran ${second.person}.`;
+      `<strong>${leader.person}</strong> ${movement} og leder scenarioet med ${duelPercent(gap)} foran ${second.person}.`;
 
   } else {
 
@@ -11492,6 +11539,22 @@ function duelThemeRows(personA, personB) {
   );
 }
 
+
+function duelPercent(value) {
+  const n = Number(value);
+
+  if (!Number.isFinite(n)) {
+    return "–";
+  }
+
+  return (
+    (n * 100)
+      .toFixed(1)
+      .replace(".", ",") +
+    "%"
+  );
+}
+
 function renderHeadToHead() {
 
   const container =
@@ -11632,11 +11695,8 @@ function renderHeadToHead() {
 
   function directPivotText(row) {
 
-    const lower =
-      row.lowerPerson;
-
-    const higher =
-      row.higherPerson;
+    const lower = row.lowerPerson;
+    const higher = row.higherPerson;
 
     if (
       Math.abs(
@@ -11645,8 +11705,8 @@ function renderHeadToHead() {
       ) <= 0.0000001
     ) {
       return (
-        `Fasit ligger akkurat på ${lower} sitt estimat. ` +
-        `Oppgang herfra favoriserer ${higher}, mens fall favoriserer ${lower}.`
+        `Fasit er på ${lower} sitt estimat. ` +
+        `Oppgang favoriserer ${higher}; fall favoriserer ${lower}.`
       );
     }
 
@@ -11657,41 +11717,39 @@ function renderHeadToHead() {
       ) <= 0.0000001
     ) {
       return (
-        `Fasit ligger akkurat på ${higher} sitt estimat. ` +
-        `Videre oppgang favoriserer ${higher}, mens fall favoriserer ${lower}.`
+        `Fasit er på ${higher} sitt estimat. ` +
+        `Oppgang favoriserer ${higher}; fall favoriserer ${lower}.`
       );
     }
 
     return (
       `Fasit ligger mellom estimatene. ` +
-      `Oppgang favoriserer ${higher}, mens fall favoriserer ${lower}.`
+      `Oppgang favoriserer ${higher}; fall favoriserer ${lower}.`
     );
   }
 
-
   function latentPivotText(row) {
-
-    const directionWord =
-      row.pivotDirection === "opp"
-        ? "stige"
-        : "falle";
 
     const movementWord =
       row.pivotDirection === "opp"
-        ? "oppgang"
-        : "fall";
+        ? "Oppgang"
+        : "Fall";
+
+    const condition =
+      row.pivotDirection === "opp"
+        ? "under"
+        : "over";
 
     return (
-      `Fasit ligger ${row.pivotDirection === "opp" ? "under" : "over"} begge estimatene. ` +
-      `Et moderat ${movementWord} påvirker derfor begge omtrent likt. ` +
-      `${row.theme} må ${directionWord} ca. ${formatPercent(row.pivotDistance)} ` +
-      `før fasit når nærmeste estimat; videre bevegelse i samme retning begynner da å favorisere ${row.afterPivotFavours}.`
+      `Fasit ligger ${condition} begge estimatene. ` +
+      `${movementWord} påvirker begge likt frem til ca. ${duelPercent(row.pivotDistance)}. ` +
+      `Videre ${movementWord.toLowerCase()} favoriserer ${row.afterPivotFavours}.`
     );
   }
 
 
   let summary =
-    `${leader} leder duellen med ${formatPercent(gap)} lavere samlet score enn ${trailer}.`;
+    `${leader} leder duellen med ${duelPercent(gap)} lavere samlet score enn ${trailer}.`;
 
   if (directPivots.length) {
 
@@ -11745,18 +11803,18 @@ function renderHeadToHead() {
         <div class="duel-person-card">
           ${avatarHtml(selectedDuelA, "avatar-md")}
           <div class="duel-person-name">${selectedDuelA}</div>
-          <div class="duel-score">${formatPercent(scoreA)}</div>
+          <div class="duel-score">${duelPercent(scoreA)}</div>
           <div class="duel-leader">
-            ${selectedDuelA === leader ? "🏆 Leder duellen" : `${formatPercent(gap)} bak`}
+            ${selectedDuelA === leader ? "🏆 Leder duellen" : `${duelPercent(gap)} bak`}
           </div>
         </div>
 
         <div class="duel-person-card">
           ${avatarHtml(selectedDuelB, "avatar-md")}
           <div class="duel-person-name">${selectedDuelB}</div>
-          <div class="duel-score">${formatPercent(scoreB)}</div>
+          <div class="duel-score">${duelPercent(scoreB)}</div>
           <div class="duel-leader">
-            ${selectedDuelB === leader ? "🏆 Leder duellen" : `${formatPercent(gap)} bak`}
+            ${selectedDuelB === leader ? "🏆 Leder duellen" : `${duelPercent(gap)} bak`}
           </div>
         </div>
 
@@ -11777,12 +11835,13 @@ function renderHeadToHead() {
           </div>
 
           <div class="duel-pivot-subtitle">
-            Temaer hvor fasit allerede ligger mellom estimatene. Her endrer neste bevegelse direkte forholdet mellom deltakerne.
+            Fasit ligger mellom estimatene. Neste bevegelse endrer duellen direkte.
           </div>
 
           ${
             directPivots.length
-              ? directPivots.map(row => `
+              ? `
+                ${directPivots.slice(0, 2).map(row => `
                   <div class="duel-pivot-item">
                     <div class="duel-pivot-theme">
                       ${row.theme}
@@ -11791,17 +11850,23 @@ function renderHeadToHead() {
                       ${directPivotText(row)}
                     </div>
                     <div class="duel-pivot-meta">
-                      ${row.lowerPerson}: ${formatPercent(row.lowerPrediction)}
-                      · Fasit: ${formatPercent(row.actual)}
-                      · ${row.higherPerson}: ${formatPercent(row.higherPrediction)}
+                      ${row.lowerPerson}: ${duelPercent(row.lowerPrediction)}
+                      · Fasit: ${duelPercent(row.actual)}
+                      · ${row.higherPerson}: ${duelPercent(row.higherPrediction)}
                     </div>
                   </div>
-                `).join("")
+                `).join("")}
+                ${
+                  directPivots.length > 2
+                    ? `<div class="duel-pivot-meta">+ ${directPivots.length - 2} flere direkte vippepunkt</div>`
+                    : ""
+                }
+              `
               : `
-                  <div class="duel-neutral-note">
-                    Ingen direkte vippepunkter akkurat nå – fasit ligger ikke mellom de to estimatene i noen temaer.
-                  </div>
-                `
+                <div class="duel-neutral-note">
+                  Ingen direkte vippepunkter akkurat nå – fasit ligger ikke mellom de to estimatene i noen temaer.
+                </div>
+              `
           }
 
         </div>
@@ -11814,12 +11879,13 @@ function renderHeadToHead() {
           </div>
 
           <div class="duel-pivot-subtitle">
-            Temaer hvor fasit ligger utenfor begge estimatene. Først når nærmeste estimat krysses begynner videre bevegelse å endre duellen.
+            Fasit ligger utenfor begge estimatene. Duellen endres først etter nærmeste vippepunkt.
           </div>
 
           ${
             latentPivots.length
-              ? latentPivots.slice(0, 3).map(row => `
+              ? `
+                ${latentPivots.slice(0, 2).map(row => `
                   <div class="duel-pivot-item">
                     <div class="duel-pivot-theme">
                       ${row.theme}
@@ -11828,15 +11894,21 @@ function renderHeadToHead() {
                       ${latentPivotText(row)}
                     </div>
                     <div class="duel-pivot-meta">
-                      Avstand til vippepunkt: ${formatPercent(row.pivotDistance)}
+                      Avstand til vippepunkt: ${duelPercent(row.pivotDistance)}
                     </div>
                   </div>
-                `).join("")
+                `).join("")}
+                ${
+                  latentPivots.length > 2
+                    ? `<div class="duel-pivot-meta">+ ${latentPivots.length - 2} flere neste vippepunkt</div>`
+                    : ""
+                }
+              `
               : `
-                  <div class="duel-neutral-note">
-                    Ingen latente vippepunkter å vise akkurat nå.
-                  </div>
-                `
+                <div class="duel-neutral-note">
+                  Ingen latente vippepunkter å vise akkurat nå.
+                </div>
+              `
           }
 
           ${
@@ -11869,14 +11941,14 @@ function renderHeadToHead() {
             ${decisive.map(row => `
               <tr>
                 <td>${row.theme}</td>
-                <td>${formatPercent(row.actual)}</td>
-                <td>${formatPercent(row.aPrediction)}</td>
-                <td>${formatPercent(row.bPrediction)}</td>
+                <td>${duelPercent(row.actual)}</td>
+                <td>${duelPercent(row.aPrediction)}</td>
+                <td>${duelPercent(row.bPrediction)}</td>
                 <td class="duel-diff ${row.winner !== "Lik" ? "duel-win" : ""}">
                   ${
                     row.winner === "Lik"
                       ? "Lik"
-                      : `${row.winner} · ${formatPercent(Math.abs(row.advantage))}`
+                      : `${row.winner} · ${duelPercent(Math.abs(row.advantage))}`
                   }
                 </td>
               </tr>
