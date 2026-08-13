@@ -3532,6 +3532,348 @@
       }
     }
 
+
+    /* =========================================================
+       TEST v3.7b — mobile polish using the dashboard's actual
+       element/class names. Keeps all v3.7a Investor fixes.
+       ========================================================= */
+    @media (max-width: 600px) {
+
+      /* ---------- Analyse: exactly two button rows ---------- */
+      #chartSection > h2 {
+        margin-bottom: 3px !important;
+      }
+
+      #chartSection > p {
+        margin-top: 0 !important;
+        margin-bottom: 8px !important;
+        line-height: 1.25 !important;
+      }
+
+      #chartSection .chart-panel {
+        margin-top: 8px !important;
+        padding: 10px !important;
+      }
+
+      #chartSection .filter-block {
+        margin: 8px 0 !important;
+      }
+
+      #chartSection .filter-title {
+        margin-bottom: 5px !important;
+        font-size: 12px !important;
+      }
+
+      #participantFilters,
+      #themeFilters {
+        display: grid !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 5px !important;
+      }
+
+      #participantFilters .filter-button,
+      #themeFilters .filter-button {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 6px 3px !important;
+        border-radius: 14px !important;
+        font-size: 10px !important;
+        line-height: 1.08 !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere;
+      }
+
+      #chartSelectionInfo {
+        margin: 7px 0 2px !important;
+        font-size: 10px !important;
+        line-height: 1.15 !important;
+      }
+
+      #chartSection .chart-wrap {
+        margin-top: 8px !important;
+      }
+
+
+      /* ---------- Race: exactly two participant-button rows ---------- */
+      #historySection > h2 {
+        margin-bottom: 3px !important;
+      }
+
+      #historySection > p {
+        margin-top: 0 !important;
+        margin-bottom: 8px !important;
+        line-height: 1.25 !important;
+      }
+
+      #historySection .chart-panel {
+        margin-top: 8px !important;
+        padding: 10px !important;
+      }
+
+      #historySection .mode-row {
+        margin: 5px 0 8px !important;
+        gap: 5px !important;
+      }
+
+      #historySection .mode-button {
+        padding: 6px 10px !important;
+        font-size: 11px !important;
+      }
+
+      #historySection .filter-block {
+        margin: 8px 0 !important;
+      }
+
+      #historySection .filter-title {
+        margin-bottom: 5px !important;
+        font-size: 12px !important;
+      }
+
+      #historyParticipantFilters {
+        display: grid !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 5px !important;
+      }
+
+      #historyParticipantFilters .filter-button {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 6px 3px !important;
+        border-radius: 14px !important;
+        font-size: 10px !important;
+        line-height: 1.08 !important;
+        white-space: normal !important;
+      }
+
+      #historySelectionInfo {
+        margin: 7px 0 2px !important;
+        font-size: 10px !important;
+        line-height: 1.15 !important;
+      }
+
+      #historySection .chart-wrap {
+        margin-top: 8px !important;
+      }
+
+
+      /* ---------- Status per tema: genuinely smaller mobile cards ---------- */
+      #themeSection > h2 {
+        margin-bottom: 3px !important;
+      }
+
+      #themeSection > p {
+        margin-top: 0 !important;
+        margin-bottom: 8px !important;
+        line-height: 1.25 !important;
+      }
+
+      #themeSection .theme-mobile-list {
+        gap: 8px !important;
+      }
+
+      #themeSection .theme-mobile-card {
+        padding: 10px !important;
+        margin-bottom: 8px !important;
+        border-radius: 10px !important;
+      }
+
+      #themeSection .theme-mobile-title {
+        margin-bottom: 7px !important;
+        gap: 4px !important;
+      }
+
+      #themeSection .theme-mobile-title strong {
+        font-size: 15px !important;
+        line-height: 1.1 !important;
+      }
+
+      #themeSection .theme-mobile-type {
+        font-size: 10px !important;
+      }
+
+      #themeSection .theme-mobile-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+      }
+
+      #themeSection .theme-mobile-stat {
+        padding: 7px 8px !important;
+        min-height: 0 !important;
+      }
+
+      #themeSection .theme-mobile-label {
+        font-size: 9px !important;
+        line-height: 1.05 !important;
+        margin-bottom: 2px !important;
+      }
+
+      #themeSection .theme-mobile-value {
+        font-size: 13px !important;
+        line-height: 1.1 !important;
+      }
+
+      #themeSection .theme-mobile-stat[style*="grid-column"] {
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+      }
+
+      #themeSection .theme-mobile-stat .avatar-sm {
+        width: 30px !important;
+        height: 30px !important;
+      }
+
+
+      /* ---------- Hva hvis?: actual sim-card structure ---------- */
+      #simulatorSection > h2 {
+        margin-bottom: 3px !important;
+      }
+
+      #simulatorSection > p {
+        margin-top: 0 !important;
+        margin-bottom: 8px !important;
+        line-height: 1.25 !important;
+      }
+
+      #simulatorSection .sim-panel {
+        margin-top: 8px !important;
+        padding: 10px !important;
+      }
+
+      #simulatorSection .sim-intro {
+        margin-bottom: 8px !important;
+        padding: 9px 10px !important;
+        gap: 8px !important;
+      }
+
+      #simulatorSection .sim-intro strong {
+        margin-bottom: 1px !important;
+      }
+
+      #simulatorSection .sim-intro span {
+        font-size: 11px !important;
+        line-height: 1.2 !important;
+      }
+
+      #simulatorSection .sim-summary {
+        margin: 8px 0 !important;
+        gap: 7px !important;
+      }
+
+      #simulatorSection .sim-grid {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+        margin-top: 9px !important;
+      }
+
+      #simulatorSection .sim-card {
+        padding: 10px !important;
+        border-radius: 9px !important;
+      }
+
+      #simulatorSection .sim-head {
+        gap: 6px !important;
+      }
+
+      #simulatorSection .sim-theme {
+        font-size: 15px !important;
+        line-height: 1.1 !important;
+      }
+
+      #simulatorSection .sim-weight {
+        font-size: 10px !important;
+        margin-top: 1px !important;
+      }
+
+      /* Start / Dagens / Simulert on one compact row */
+      #simulatorSection .sim-values {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 5px !important;
+        margin: 7px 0 5px !important;
+      }
+
+      #simulatorSection .sim-value-box {
+        min-width: 0 !important;
+        padding: 6px 4px !important;
+        border-radius: 6px !important;
+        text-align: center;
+      }
+
+      #simulatorSection .sim-value-label {
+        font-size: 8px !important;
+        line-height: 1 !important;
+        white-space: nowrap;
+      }
+
+      #simulatorSection .sim-value-main {
+        margin-top: 2px !important;
+        font-size: 10px !important;
+        line-height: 1.12 !important;
+        overflow-wrap: anywhere;
+      }
+
+      /* Most of the old empty space lived here */
+      #simulatorSection .slider-shell {
+        padding: 21px 0 34px !important;
+      }
+
+      #simulatorSection .slider-marker {
+        font-size: 9px !important;
+      }
+
+      #simulatorSection .slider-marker.start {
+        top: 34px !important;
+      }
+
+      #simulatorSection .slider-marker.current::after,
+      #simulatorSection .slider-marker.start::before {
+        height: 8px !important;
+      }
+
+      #simulatorSection .sim-range-labels {
+        font-size: 9px !important;
+      }
+
+      #simulatorSection .sim-input-row {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) 78px auto !important;
+        gap: 5px !important;
+        margin-top: 3px !important;
+        align-items: center !important;
+      }
+
+      #simulatorSection .sim-input-row label {
+        font-size: 10px !important;
+        line-height: 1.1 !important;
+      }
+
+      #simulatorSection .sim-number {
+        width: 100% !important;
+        box-sizing: border-box;
+        padding: 5px 6px !important;
+        font-size: 11px !important;
+      }
+
+      #simulatorSection .sim-unit {
+        font-size: 10px !important;
+      }
+    }
+
+    /* Very narrow phones: keep 2-row filters, just tighten text further */
+    @media (max-width: 390px) {
+      #participantFilters .filter-button,
+      #themeFilters .filter-button,
+      #historyParticipantFilters .filter-button {
+        font-size: 9px !important;
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+      }
+
+      #simulatorSection .sim-value-main {
+        font-size: 9px !important;
+      }
+    }
+
   </style>
 </head>
 
