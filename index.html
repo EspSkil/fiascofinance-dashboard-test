@@ -4118,6 +4118,75 @@
       }
     }
 
+
+    /* =========================================================
+       TEST v3.7d — final simulator readability fix
+       Keeps all v3.7c changes.
+       ========================================================= */
+    @media (max-width: 600px) {
+
+      /* Make the three compact value cells easier to read.
+         Allow up to three text lines instead of squeezing the font. */
+      #simulatorSection .sim-value-box {
+        padding: 7px 5px !important;
+      }
+
+      #simulatorSection .sim-value-label {
+        font-size: 10px !important;
+        line-height: 1.05 !important;
+        white-space: normal !important;
+      }
+
+      #simulatorSection .sim-value-main {
+        margin-top: 3px !important;
+        font-size: 11px !important;
+        line-height: 1.18 !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+      }
+
+      /* Give the slider just enough vertical room so the labels stay clear. */
+      #simulatorSection .slider-shell {
+        padding: 19px 0 30px !important;
+      }
+
+      /* "Nå" remains clearly above the slider line. */
+      #simulatorSection .slider-marker.current {
+        top: 0 !important;
+      }
+
+      /* Start / 0% marker moves below the slider line and remains visible. */
+      #simulatorSection .slider-marker.start {
+        top: auto !important;
+        bottom: 4px !important;
+      }
+
+      #simulatorSection .slider-marker.start::before {
+        top: auto !important;
+        bottom: 100% !important;
+        height: 8px !important;
+      }
+
+      #simulatorSection .slider-marker.current::after {
+        height: 8px !important;
+      }
+
+      #simulatorSection .slider-marker {
+        font-size: 9px !important;
+        line-height: 1.05 !important;
+      }
+    }
+
+    @media (max-width: 390px) {
+      #simulatorSection .sim-value-label {
+        font-size: 9.5px !important;
+      }
+
+      #simulatorSection .sim-value-main {
+        font-size: 10.5px !important;
+      }
+    }
+
   </style>
 </head>
 
