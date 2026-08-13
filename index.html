@@ -4187,6 +4187,120 @@
       }
     }
 
+
+    /* =========================================================
+       TEST v3.8 — readability + icon/order polish
+       ========================================================= */
+    @media (max-width: 600px) {
+
+      /* Hva hvis?: 3 clear rows in each value cell */
+      #simulatorSection .sim-value-box {
+        padding: 8px 5px !important;
+      }
+
+      #simulatorSection .sim-value-label {
+        font-size: 11px !important;
+        line-height: 1.1 !important;
+        font-weight: 600;
+      }
+
+      #simulatorSection .sim-value-main {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 2px !important;
+        margin-top: 4px !important;
+        font-size: 12px !important;
+        line-height: 1.15 !important;
+      }
+
+      #simulatorSection .sim-value-number {
+        display: block;
+        font-size: 12px !important;
+        font-weight: 800;
+        white-space: normal;
+      }
+
+      #simulatorSection .sim-value-percent {
+        display: block;
+        min-height: 14px;
+        font-size: 11px !important;
+        font-weight: 700;
+        color: #555;
+        white-space: normal;
+      }
+
+      body.dark-mode #simulatorSection .sim-value-percent {
+        color: #b8c1ca;
+      }
+
+      /* Increase other simulator text a notch without restoring excess space */
+      #simulatorSection .sim-theme {
+        font-size: 16px !important;
+      }
+
+      #simulatorSection .sim-weight {
+        font-size: 11px !important;
+      }
+
+      #simulatorSection .slider-marker {
+        font-size: 10px !important;
+      }
+
+      #simulatorSection .sim-range-labels {
+        font-size: 9.5px !important;
+      }
+
+      #simulatorSection .sim-input-row label {
+        font-size: 11px !important;
+      }
+
+      #simulatorSection .sim-number {
+        font-size: 11px !important;
+      }
+
+      #simulatorSection .sim-unit {
+        font-size: 10px !important;
+      }
+
+      /* Duell: everything below participant/avatar cards one readability step up */
+      #headToHeadSection .duel-summary {
+        font-size: 14px !important;
+        line-height: 1.45 !important;
+      }
+
+      #headToHeadSection .duel-summary strong {
+        font-size: 15px !important;
+      }
+
+      #headToHeadSection .duel-pivot-card {
+        font-size: 14px !important;
+        line-height: 1.45 !important;
+      }
+
+      #headToHeadSection .duel-pivot-title {
+        font-size: 17px !important;
+      }
+
+      #headToHeadSection .duel-pivot-subtitle {
+        font-size: 12px !important;
+        line-height: 1.35 !important;
+      }
+
+      #headToHeadSection .duel-pivot-theme {
+        font-size: 15px !important;
+      }
+
+      #headToHeadSection .duel-pivot-meta {
+        font-size: 11.5px !important;
+        line-height: 1.3 !important;
+      }
+
+      #headToHeadSection .duel-neutral-note {
+        font-size: 13px !important;
+      }
+    }
+
   </style>
 </head>
 
@@ -4348,14 +4462,14 @@
     <div class="quick-nav-inner">
       <a href="#leaderboardSection">🏆 Live</a>
       <a href="#monthSection">📅 Måned</a>
-      <a href="#chartSection">🔍 Analyse</a>
-      <a href="#themeSection">📊 Tema</a>
-      <a href="#historySection">📈 Race</a>
+      <a href="#chartSection">📊 Analyse</a>
+      <a href="#themeSection">📉 Tema</a>
+      <a href="#historySection">🏁 Race</a>
       <a href="#simulatorSection">🔮 Hva hvis?</a>
-      <a href="#participantSection">👤 Deltaker</a>
-      <a href="#estimatesSection">📋 Estimat</a>
+      <a href="#estimatesSection">🎯 Estimat</a>
       <a href="#investorSection">💰 Investor</a>
       <a href="#headToHeadSection">⚔️ Duell</a>
+      <a href="#participantSection">👤 Deltaker</a>
     </div>
   </nav>
 
@@ -6041,7 +6155,7 @@ function createChartSection(
   ).innerHTML = `
 
     <h2>
-      📚 Hva avgjør stillingen?
+      📊 Hva avgjør stillingen?
     </h2>
 
     <p>
@@ -6692,7 +6806,7 @@ function createHistorySection() {
   ).innerHTML = `
 
     <h2>
-      📈 Championship Race
+      🏁 Championship Race
     </h2>
 
     <p>
@@ -7701,16 +7815,23 @@ function renderSimulatorControls() {
             </div>
 
             <div class="sim-value-main">
-
-              ${
-                isPrice
-                  ? formatNumber(
-                      startRaw,
-                      2
-                    )
-                  : "0,00%"
-              }
-
+              <span class="sim-value-number">
+                ${
+                  isPrice
+                    ? formatNumber(
+                        startRaw,
+                        2
+                      )
+                    : "0,0%"
+                }
+              </span>
+              <span class="sim-value-percent">
+                ${
+                  isPrice
+                    ? "0,0%"
+                    : "&nbsp;"
+                }
+              </span>
             </div>
 
           </div>
@@ -7723,23 +7844,27 @@ function renderSimulatorControls() {
             </div>
 
             <div class="sim-value-main">
-
-              ${
-                isPrice
-                  ? formatNumber(
-                      nowRaw,
-                      2
-                    ) +
-                    " · "
-                  : ""
-              }
-
-              ${
-                formatPercent(
-                  current
-                )
-              }
-
+              <span class="sim-value-number">
+                ${
+                  isPrice
+                    ? formatNumber(
+                        nowRaw,
+                        2
+                      )
+                    : formatPercent(
+                        current
+                      )
+                }
+              </span>
+              <span class="sim-value-percent">
+                ${
+                  isPrice
+                    ? formatPercent(
+                        current
+                      )
+                    : "&nbsp;"
+                }
+              </span>
             </div>
 
           </div>
@@ -7756,23 +7881,27 @@ function renderSimulatorControls() {
               id="sim-display-${safeId(
                 themeRow.theme
               )}">
-
-              ${
-                isPrice
-                  ? formatNumber(
-                      simulatedRaw,
-                      2
-                    ) +
-                    " · "
-                  : ""
-              }
-
-              ${
-                formatPercent(
-                  simulated
-                )
-              }
-
+              <span class="sim-value-number">
+                ${
+                  isPrice
+                    ? formatNumber(
+                        simulatedRaw,
+                        2
+                      )
+                    : formatPercent(
+                        simulated
+                      )
+                }
+              </span>
+              <span class="sim-value-percent">
+                ${
+                  isPrice
+                    ? formatPercent(
+                        simulated
+                      )
+                    : "&nbsp;"
+                }
+              </span>
             </div>
 
           </div>
@@ -7946,25 +8075,45 @@ function renderSimulatorControls() {
             );
 
 
-          card.querySelector(
-            `#sim-display-${safeId(
-              themeRow.theme
-            )}`
-          ).textContent =
-
-            (
-              isPrice
-                ? formatNumber(
-                    raw,
-                    2
-                  ) +
-                  " · "
-                : ""
-            ) +
-
-            formatPercent(
-              value
+          const display =
+            card.querySelector(
+              `#sim-display-${safeId(
+                themeRow.theme
+              )}`
             );
+
+          if (display) {
+            const numberEl =
+              display.querySelector(
+                ".sim-value-number"
+              );
+
+            const percentEl =
+              display.querySelector(
+                ".sim-value-percent"
+              );
+
+            if (numberEl) {
+              numberEl.textContent =
+                isPrice
+                  ? formatNumber(
+                      raw,
+                      2
+                    )
+                  : formatPercent(
+                      value
+                    );
+            }
+
+            if (percentEl) {
+              percentEl.innerHTML =
+                isPrice
+                  ? formatPercent(
+                      value
+                    )
+                  : "&nbsp;";
+            }
+          }
 
 
           card.classList.toggle(
@@ -10146,7 +10295,7 @@ function showThemeResults(
   let html = `
 
     <h2>
-      📊 Status per tema
+      📉 Status per tema
     </h2>
 
     <p>
