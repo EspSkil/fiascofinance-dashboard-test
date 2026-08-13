@@ -3427,6 +3427,111 @@
       }
     }
 
+
+    /* =========================================================
+       TEST v3.7a — Investor mobile hotfix
+       ========================================================= */
+    @media (max-width: 600px) {
+
+      /* Keep positive contribution and headwind side-by-side.
+         This overrides the older max-width:800px stacking rule. */
+      #investorSection .investor-detail {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+        gap: 8px !important;
+        margin-top: 12px !important;
+      }
+
+      #investorSection .investor-detail-card {
+        min-width: 0;
+        padding: 9px 8px !important;
+      }
+
+      #investorSection .investor-detail-title {
+        font-size: 10px !important;
+        line-height: 1.15 !important;
+        margin-bottom: 5px !important;
+      }
+
+      #investorSection .investor-detail-main {
+        font-size: 13px !important;
+        line-height: 1.15 !important;
+        overflow-wrap: anywhere;
+      }
+
+      #investorSection .investor-detail-text {
+        margin-top: 4px !important;
+        font-size: 10px !important;
+        line-height: 1.25 !important;
+      }
+
+      /* Normal Investor theme table:
+         horizontal scroll is intentional on mobile.
+         Keep Tema visible while the other columns slide. */
+      #investorSection .investor-breakdown > .table-wrap:not(.investor-year-summary) {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+      }
+
+      #investorSection .investor-breakdown > .table-wrap:not(.investor-year-summary) table {
+        width: max-content !important;
+        min-width: 600px !important;
+        table-layout: auto !important;
+      }
+
+      #investorSection .investor-breakdown > .table-wrap:not(.investor-year-summary) th,
+      #investorSection .investor-breakdown > .table-wrap:not(.investor-year-summary) td {
+        width: auto !important;
+        min-width: 88px;
+        padding: 7px 8px !important;
+        font-size: 10px !important;
+        white-space: nowrap;
+      }
+
+      #investorSection .investor-breakdown > .table-wrap:not(.investor-year-summary) th:first-child,
+      #investorSection .investor-breakdown > .table-wrap:not(.investor-year-summary) td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        min-width: 112px;
+        background: #fff;
+        box-shadow: 1px 0 0 #ddd;
+      }
+
+      #investorSection .investor-breakdown > .table-wrap:not(.investor-year-summary) thead th:first-child {
+        z-index: 3;
+        background: #f2f2f2;
+      }
+
+      body.dark-mode #investorSection .investor-breakdown > .table-wrap:not(.investor-year-summary) th:first-child,
+      body.dark-mode #investorSection .investor-breakdown > .table-wrap:not(.investor-year-summary) td:first-child {
+        background: #181e25;
+        box-shadow: 1px 0 0 #303945;
+      }
+
+      body.dark-mode #investorSection .investor-breakdown > .table-wrap:not(.investor-year-summary) thead th:first-child {
+        background: #222a33;
+      }
+
+      /* All-time year table has only four columns and should fit the screen. */
+      #investorSection .investor-year-summary {
+        overflow-x: hidden !important;
+      }
+
+      #investorSection .investor-year-summary table {
+        width: 100% !important;
+        min-width: 0 !important;
+        table-layout: fixed !important;
+      }
+
+      #investorSection .investor-year-summary th,
+      #investorSection .investor-year-summary td {
+        padding: 7px 3px !important;
+        font-size: 9px !important;
+        white-space: nowrap;
+      }
+    }
+
   </style>
 </head>
 
@@ -9404,7 +9509,7 @@ function showThemeResults(
             <th>Tema</th>
             <th>Type</th>
             <th>Vekt</th>
-            <th>Faktisk utvikling</th>
+            <th>Utvikling</th>
             <th>Nærmest</th>
             <th>Avstand</th>
           </tr>
@@ -11729,7 +11834,7 @@ function renderInvestorSection() {
                   <th>Tema</th>
                   <th>Posisjon</th>
                   <th>Faktisk utvikling</th>
-                  <th>Posisjonsavkastning</th>
+                  <th>Avkastning</th>
                   <th>Bidrag</th>
                 </tr>
               </thead>
