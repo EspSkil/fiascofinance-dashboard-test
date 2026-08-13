@@ -3157,6 +3157,276 @@
       }
     }
 
+
+    /* =========================================================
+       TEST v3.7 — mobile polish
+       ========================================================= */
+
+    @media (max-width: 600px) {
+
+      /* General section rhythm */
+      .section-card {
+        padding-top: 14px;
+        padding-bottom: 14px;
+      }
+
+      .section-card h2 {
+        margin-bottom: 4px;
+      }
+
+      .section-subtitle {
+        margin-top: 2px;
+        margin-bottom: 10px;
+        line-height: 1.3;
+      }
+
+      /* ---------- Analyse ---------- */
+      #chartSection .section-card,
+      #chartSection {
+        --ff-mobile-gap: 6px;
+      }
+
+      #chartSection .filter-card,
+      #chartSection .chart-controls,
+      #chartSection .control-card {
+        padding: 12px !important;
+      }
+
+      #chartSection .filter-group,
+      #chartSection .control-group {
+        margin-bottom: 10px !important;
+      }
+
+      #chartSection .filter-group h3,
+      #chartSection .control-group h3 {
+        margin: 0 0 6px !important;
+      }
+
+      #chartSection button,
+      #chartSection .filter-chip,
+      #chartSection .chip {
+        padding: 7px 10px !important;
+        margin: 0 !important;
+        font-size: 12px !important;
+        line-height: 1.1 !important;
+      }
+
+      #chartSection .filter-buttons,
+      #chartSection .chip-row,
+      #chartSection .button-row {
+        gap: 6px !important;
+        row-gap: 6px !important;
+      }
+
+      #chartSection .filter-summary,
+      #chartSection .selection-summary {
+        margin: 8px 0 4px !important;
+        font-size: 11px !important;
+      }
+
+      /* ---------- Race ---------- */
+      #historySection .section-card,
+      #historySection {
+        --ff-mobile-gap: 6px;
+      }
+
+      #historySection .race-controls,
+      #historySection .filter-card,
+      #historySection .control-card {
+        padding: 12px !important;
+      }
+
+      #historySection button,
+      #historySection .filter-chip,
+      #historySection .chip {
+        padding: 7px 10px !important;
+        margin: 0 !important;
+        font-size: 12px !important;
+        line-height: 1.1 !important;
+      }
+
+      #historySection .filter-buttons,
+      #historySection .chip-row,
+      #historySection .button-row {
+        gap: 6px !important;
+        row-gap: 6px !important;
+      }
+
+      #historySection h3 {
+        margin: 8px 0 6px !important;
+      }
+
+      #historySection .filter-summary,
+      #historySection .selection-summary {
+        margin: 8px 0 4px !important;
+        font-size: 11px !important;
+      }
+
+      /* ---------- Tema cards ---------- */
+      #themeSection .theme-card {
+        padding: 12px !important;
+        margin-bottom: 10px !important;
+      }
+
+      #themeSection .theme-card h3,
+      #themeSection .theme-title {
+        margin-bottom: 6px !important;
+      }
+
+      #themeSection .theme-metrics,
+      #themeSection .theme-stats {
+        gap: 7px !important;
+        margin-top: 7px !important;
+      }
+
+      #themeSection .theme-metric,
+      #themeSection .theme-stat,
+      #themeSection .metric-box {
+        padding: 8px 9px !important;
+        min-height: 0 !important;
+      }
+
+      #themeSection .theme-metric-label,
+      #themeSection .metric-label {
+        font-size: 10px !important;
+        margin-bottom: 2px !important;
+      }
+
+      #themeSection .theme-metric-value,
+      #themeSection .metric-value {
+        font-size: 15px !important;
+        line-height: 1.05 !important;
+      }
+
+      #themeSection .nearest,
+      #themeSection .theme-nearest,
+      #themeSection .nearest-box {
+        padding: 8px 9px !important;
+        min-height: 0 !important;
+        margin-top: 7px !important;
+      }
+
+      #themeSection .nearest img,
+      #themeSection .theme-nearest img,
+      #themeSection .nearest-box img {
+        width: 34px !important;
+        height: 34px !important;
+      }
+
+      /* ---------- Hva hvis? ---------- */
+      #simulatorSection .scenario-card,
+      #simulatorSection .simulator-card,
+      #simulatorSection .theme-simulator-card {
+        padding: 12px !important;
+        margin-bottom: 10px !important;
+      }
+
+      #simulatorSection .scenario-summary,
+      #simulatorSection .simulator-summary {
+        margin-bottom: 10px !important;
+      }
+
+      #simulatorSection .scenario-values,
+      #simulatorSection .simulator-values,
+      #simulatorSection .scenario-metrics {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+      }
+
+      #simulatorSection .scenario-value,
+      #simulatorSection .simulator-value,
+      #simulatorSection .scenario-metric,
+      #simulatorSection .metric-box {
+        min-width: 0 !important;
+        padding: 7px 7px !important;
+      }
+
+      #simulatorSection .scenario-value .label,
+      #simulatorSection .simulator-value .label,
+      #simulatorSection .scenario-metric .label,
+      #simulatorSection .metric-label {
+        font-size: 9px !important;
+        line-height: 1.05 !important;
+      }
+
+      #simulatorSection .scenario-value .value,
+      #simulatorSection .simulator-value .value,
+      #simulatorSection .scenario-metric .value,
+      #simulatorSection .metric-value {
+        font-size: 12px !important;
+        line-height: 1.1 !important;
+        white-space: nowrap;
+      }
+
+      #simulatorSection input[type="range"] {
+        margin-top: 8px !important;
+        margin-bottom: 8px !important;
+      }
+
+      /* ---------- Investor ---------- */
+      #investorSection .investor-highlights,
+      #investorSection .investor-contribution-grid,
+      #investorSection .investor-extremes {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+      }
+
+      #investorSection .investor-highlight-card,
+      #investorSection .investor-contribution-card,
+      #investorSection .investor-extreme-card {
+        min-width: 0 !important;
+        padding: 10px !important;
+      }
+
+      #investorSection .investor-highlight-card h3,
+      #investorSection .investor-contribution-card h3,
+      #investorSection .investor-extreme-card h3 {
+        font-size: 11px !important;
+        line-height: 1.15 !important;
+        margin-bottom: 5px !important;
+      }
+
+      #investorSection .table-wrap {
+        overflow-x: hidden !important;
+      }
+
+      #investorSection table {
+        width: 100% !important;
+        table-layout: fixed !important;
+      }
+
+      #investorSection th,
+      #investorSection td {
+        padding: 7px 4px !important;
+        font-size: 10px !important;
+        white-space: nowrap;
+      }
+
+      #investorSection th:nth-child(1),
+      #investorSection td:nth-child(1) { width: 19%; }
+
+      #investorSection th:nth-child(2),
+      #investorSection td:nth-child(2) { width: 28%; }
+
+      #investorSection th:nth-child(3),
+      #investorSection td:nth-child(3) { width: 25%; }
+
+      #investorSection th:nth-child(4),
+      #investorSection td:nth-child(4) { width: 28%; }
+
+      /* ---------- Duell ---------- */
+      #headToHeadSection {
+        margin-top: 22px !important;
+        scroll-margin-top: 92px;
+      }
+
+      #headToHeadSection .section-card {
+        margin-top: 0 !important;
+      }
+    }
+
   </style>
 </head>
 
@@ -11435,7 +11705,7 @@ function renderInvestorSection() {
                 <tr>
                   <th>År</th>
                   <th>Startkapital</th>
-                  <th>Årsavkastning</th>
+                  <th>Avkastning</th>
                   <th>Sluttverdi</th>
                 </tr>
               </thead>
@@ -11768,6 +12038,27 @@ function duelPercent(value) {
   );
 }
 
+
+// TEST v3.7: mobile Duell navigation offset.
+// Keep the section itself comfortably separated from Investor, but make the
+// parent navigation land with the "⚔️ Duell" heading visible.
+function ffAdjustNavigationMapForMobile(targets) {
+  if (
+    targets &&
+    typeof targets === "object" &&
+    window.innerWidth <= 600 &&
+    Number.isFinite(Number(targets.headToHeadSection))
+  ) {
+    targets.headToHeadSection =
+      Math.max(
+        0,
+        Number(targets.headToHeadSection) - 34
+      );
+  }
+
+  return targets;
+}
+
 function renderHeadToHead() {
 
   const container =
@@ -11985,7 +12276,7 @@ function renderHeadToHead() {
     <section class="section-card">
 
       <div>
-        <h2>⚔️ Head-to-head</h2>
+        <h2>⚔️ Duell</h2>
         <p class="section-subtitle">
           Sammenlign to deltakere: hvem leder nå, og hvilke markedsbevegelser kan faktisk endre duellen?
         </p>
@@ -12607,6 +12898,7 @@ async function loadData() {
       mapRaf = null;
 
       const targets = buildNavigationMap();
+      targets = ffAdjustNavigationMapForMobile(targets);
       const json = JSON.stringify(targets);
 
       if (!force && json === lastMapJson) return;
