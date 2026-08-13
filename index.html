@@ -3874,6 +3874,250 @@
       }
     }
 
+
+    /* =========================================================
+       TEST v3.7c — stronger mobile compaction for Analyse/Race
+       filters and Scenarioverksted cards.
+       ========================================================= */
+    @media (max-width: 600px) {
+
+      /* ---------- Analyse: make controls genuinely shallow ---------- */
+      #chartSection .chart-panel {
+        padding: 8px !important;
+        margin-top: 6px !important;
+      }
+
+      #chartSection .filter-block {
+        margin: 5px 0 !important;
+      }
+
+      #chartSection .filter-title {
+        margin-bottom: 4px !important;
+        font-size: 11px !important;
+        line-height: 1 !important;
+      }
+
+      #participantFilters,
+      #themeFilters {
+        display: grid !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 4px !important;
+        width: 100% !important;
+      }
+
+      #participantFilters .filter-button,
+      #themeFilters .filter-button {
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        min-height: 28px !important;
+        height: auto !important;
+        padding: 4px 2px !important;
+        border-radius: 12px !important;
+        font-size: 9px !important;
+        line-height: 1.02 !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+      }
+
+      #chartSelectionInfo {
+        margin: 5px 0 0 !important;
+        font-size: 9px !important;
+        line-height: 1.1 !important;
+      }
+
+      #chartSection .chart-wrap {
+        margin-top: 5px !important;
+      }
+
+      /* ---------- Race: same compact visual language ---------- */
+      #historySection .chart-panel {
+        padding: 8px !important;
+        margin-top: 6px !important;
+      }
+
+      #historySection .mode-row {
+        margin: 4px 0 6px !important;
+      }
+
+      #historySection .mode-button {
+        min-height: 28px !important;
+        padding: 4px 9px !important;
+        font-size: 10px !important;
+      }
+
+      #historySection .filter-block {
+        margin: 5px 0 !important;
+      }
+
+      #historySection .filter-title {
+        margin-bottom: 4px !important;
+        font-size: 11px !important;
+        line-height: 1 !important;
+      }
+
+      #historyParticipantFilters {
+        display: grid !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 4px !important;
+        width: 100% !important;
+      }
+
+      #historyParticipantFilters .filter-button {
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        min-height: 28px !important;
+        height: auto !important;
+        padding: 4px 2px !important;
+        border-radius: 12px !important;
+        font-size: 9px !important;
+        line-height: 1.02 !important;
+        white-space: normal !important;
+      }
+
+      #historySelectionInfo {
+        margin: 5px 0 0 !important;
+        font-size: 9px !important;
+        line-height: 1.1 !important;
+      }
+
+      #historySection .chart-wrap {
+        margin-top: 5px !important;
+      }
+
+      /* ---------- Scenarioverksted: much smaller mobile cards ---------- */
+      #simulatorSection .sim-panel {
+        padding: 8px !important;
+        margin-top: 6px !important;
+      }
+
+      #simulatorSection .sim-intro {
+        padding: 7px 8px !important;
+        margin-bottom: 6px !important;
+      }
+
+      #simulatorSection .sim-summary {
+        margin: 6px 0 !important;
+      }
+
+      #simulatorSection .sim-grid {
+        gap: 6px !important;
+        margin-top: 6px !important;
+      }
+
+      #simulatorSection .sim-card {
+        padding: 8px !important;
+        border-radius: 8px !important;
+      }
+
+      #simulatorSection .sim-head {
+        margin-bottom: 0 !important;
+      }
+
+      #simulatorSection .sim-theme {
+        font-size: 14px !important;
+      }
+
+      #simulatorSection .sim-weight {
+        font-size: 9px !important;
+      }
+
+      /* Force the three grey boxes onto one single row */
+      #simulatorSection .sim-values {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 4px !important;
+        margin: 5px 0 3px !important;
+      }
+
+      #simulatorSection .sim-value-box {
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+        padding: 5px 2px !important;
+        border-radius: 5px !important;
+        text-align: center !important;
+      }
+
+      #simulatorSection .sim-value-label {
+        font-size: 8px !important;
+        line-height: 1 !important;
+        white-space: normal !important;
+      }
+
+      #simulatorSection .sim-value-main {
+        margin-top: 2px !important;
+        font-size: 9px !important;
+        line-height: 1.08 !important;
+        white-space: normal !important;
+      }
+
+      /* Compress the slider area heavily while keeping markers readable */
+      #simulatorSection .slider-shell {
+        padding: 15px 0 22px !important;
+      }
+
+      #simulatorSection .slider-marker {
+        font-size: 8px !important;
+        line-height: 1 !important;
+      }
+
+      #simulatorSection .slider-marker.start {
+        top: 25px !important;
+      }
+
+      #simulatorSection .slider-marker.current::after,
+      #simulatorSection .slider-marker.start::before {
+        height: 5px !important;
+      }
+
+      #simulatorSection .sim-slider {
+        min-height: 24px !important;
+        margin: 0 !important;
+      }
+
+      #simulatorSection .sim-range-labels {
+        margin-top: 0 !important;
+        font-size: 8px !important;
+        line-height: 1 !important;
+      }
+
+      #simulatorSection .sim-input-row {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) 70px 12px !important;
+        gap: 4px !important;
+        margin-top: 1px !important;
+      }
+
+      #simulatorSection .sim-input-row label {
+        font-size: 9px !important;
+      }
+
+      #simulatorSection .sim-number {
+        min-height: 28px !important;
+        height: 28px !important;
+        padding: 3px 5px !important;
+        font-size: 10px !important;
+      }
+
+      #simulatorSection .sim-unit {
+        font-size: 9px !important;
+      }
+    }
+
+    @media (max-width: 390px) {
+      #participantFilters .filter-button,
+      #themeFilters .filter-button,
+      #historyParticipantFilters .filter-button {
+        font-size: 8.5px !important;
+        min-height: 27px !important;
+      }
+
+      #simulatorSection .sim-value-main {
+        font-size: 8.5px !important;
+      }
+    }
+
   </style>
 </head>
 
