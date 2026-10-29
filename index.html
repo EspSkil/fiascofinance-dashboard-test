@@ -10916,22 +10916,16 @@ function participantCareerStats(
         ).forEach(
           theme => {
 
-            const rank =
-              theme.ranking.findIndex(
-                row =>
-                  row.person === person
-              );
+            // Delte plasseringer: alle med samme avstand får samme medalje.
+            // Konkurranserangering (1, 1, 3), ikke indeks i sortert liste.
+            const rank = theme.ranking.findIndex(row => row.person === person);
+            const distance = rank >= 0 ? theme.ranking[rank].distance : NaN;
+            const place = rank >= 0 && Number.isFinite(distance)
+              ? 1 + theme.ranking.filter(row => row.distance < distance - 1e-9).length
+              : Infinity;
 
-            if (rank === 0) {
-              themeWins += 1;
-            }
-
-            if (
-              rank >= 0 &&
-              rank <= 2
-            ) {
-              themePodiums += 1;
-            }
+            if (place === 1) themeWins += 1;
+            if (place <= 3) themePodiums += 1;
 
             const entry =
               theme.ranking.find(
@@ -12270,7 +12264,7 @@ function renderMonthlyReport() {
 
 // ------------------------------------------------------------
 // TEST v3: Investor
-// 100 000 kr equally distributed across all themes except Styringsrente.
+// 100 000 kr distributed by sqrt(FF weight), excluding Styringsrente.
 // Positive prediction = LONG, negative prediction = SHORT, 0 = flat.
 // No FF weighting, leverage, costs, dividends or market frictions.
 // ------------------------------------------------------------
@@ -12281,6 +12275,18 @@ let selectedInvestorParticipant = null;
 function investorThemeIncluded(themeName) {
   const t = String(themeName || "").trim().toLowerCase();
   return !t.includes("styringsrente");
+}
+
+function investorAllocations(themes, capital) {
+  const weights = themes.map(theme => {
+    const w = Number(theme.weight);
+    return Number.isFinite(w) && w > 0 ? Math.sqrt(w) : 0;
+  });
+  const total = weights.reduce((sum, w) => sum + w, 0);
+  // Defensive fallback if all input weights are missing/invalid.
+  return themes.map((theme, index) =>
+    total > 0 ? capital * weights[index] / total : capital / themes.length
+  );
 }
 
 function investorDirection(prediction) {
@@ -12335,9 +12341,10 @@ function investorSingleSeasonResult(season, person, startingCapital = 100000) {
 
   if (!themes.length || !season.participants.includes(person)) return null;
 
-  const allocation = startingCapital / themes.length;
+  const allocations = investorAllocations(themes, startingCapital);
 
-  const details = themes.map(theme => {
+  const details = themes.map((theme, index) => {
+    const allocation = allocations[index];
     const prediction =
       theme.personResults[person]
         ? theme.personResults[person].prediction
@@ -12354,6 +12361,8 @@ function investorSingleSeasonResult(season, person, startingCapital = 100000) {
       theme: theme.theme,
       prediction,
       direction,
+      allocation,
+      allocationShare: startingCapital ? allocation / startingCapital : 0,
       actualReturn,
       positionReturn,
       contribution,
@@ -12438,10 +12447,11 @@ function investorResults(period) {
 
   if (!themes.length) return null;
 
-  const allocation = 100000 / themes.length;
+  const allocations = investorAllocations(themes, 100000);
 
   const rows = currentParticipants.map(person => {
-    const details = themes.map(theme => {
+    const details = themes.map((theme, index) => {
+      const allocation = allocations[index];
       const prediction =
         theme.personResults[person]
           ? theme.personResults[person].prediction
@@ -12457,6 +12467,8 @@ function investorResults(period) {
         theme: theme.theme,
         prediction,
         direction,
+        allocation,
+        allocationShare: allocation / 100000,
         actualReturn,
         positionReturn,
         contribution,
@@ -12477,7 +12489,7 @@ function investorResults(period) {
 
   return {
     label: setup.label,
-    allocation,
+    allocations,
     themes,
     rows,
     allTime: false
@@ -12541,12 +12553,12 @@ function renderInvestorSection() {
 
       <div class="investor-info-box" id="investorInfoBox">
         <strong>Slik beregnes Investor</strong><br>
-        100 000 kr fordeles likt på årets investerbare temaer. Positivt estimat = LONG og negativt estimat = SHORT.
-        I All-time tas sluttverdien fra ett FF-år med videre til neste år og fordeles likt på nytt. Dermed blir avkastningen akkumulert gjennom FF-historikken.
+        100 000 kr fordeles etter kvadratroten av hvert temas FF-vekt (√FF-vekt). Styringsrenten er utelatt. Positivt estimat = LONG og negativt estimat = SHORT.
+        I All-time tas sluttverdien fra ett FF-år med videre til neste år og fordeles etter det nye årets √FF-vekter. Dermed blir avkastningen akkumulert gjennom FF-historikken.
       </div>
 
       <div class="investor-note">
-        Hypotetisk og uhøytidelig: 100 000 kr fordeles likt på alle temaer unntatt Styringsrente.
+        Hypotetisk og uhøytidelig: 100 000 kr fordeles etter √FF-vekt på alle temaer unntatt Styringsrente.
         Positivt estimat = LONG, negativt estimat = SHORT. Estimatets størrelse påvirker ikke vekten.
         Ingen gearing, kostnader, utbytte eller andre markedsfriksjoner.
       </div>
@@ -12637,6 +12649,7 @@ function renderInvestorSection() {
                 <tr>
                   <th>Tema</th>
                   <th>Posisjon</th>
+                  <th>Andel</th>
                   <th>Faktisk utvikling</th>
                   <th>Avkastning</th>
                   <th>Bidrag</th>
@@ -12647,6 +12660,7 @@ function renderInvestorSection() {
                   <tr>
                     <td>${item.theme}</td>
                     <td>${investorPositionHtml(item.direction)}</td>
+                    <td>${investorPercent(item.allocationShare, 1)}</td>
                     <td>${investorPercent(item.actualReturn)}</td>
                     <td>${investorPercent(item.positionReturn)}</td>
                     <td>${investorCurrency(item.contribution)}</td>
