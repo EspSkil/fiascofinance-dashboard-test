@@ -11625,6 +11625,15 @@ function leaderboardPositionMap(leaderboard) {
 }
 
 
+function monthlyMovementLabel(item) {
+  if (!item || !Number.isFinite(item.delta)) return "–";
+  if (item.deltaUnit === "pp") {
+    return signedPercentValue(item.delta).replace(/%$/, " prosentpoeng");
+  }
+  return signedPercentValue(item.delta);
+}
+
+
 function monthlyThemeChanges(
   competitionRows,
   participants,
@@ -11659,9 +11668,18 @@ function monthlyThemeChanges(
   return after.themeResults.map(item => {
     const previous = beforeThemes[item.theme];
 
-    const delta =
-      item.actualChange -
-      previous.actualChange;
+    // Compare the actual registered values at the beginning and end
+    // of the monthly period, not the difference in year-to-date returns.
+    const periodStart = parseNumber(baselineRow[item.theme]);
+    const periodEnd = parseNumber(latestRow[item.theme]);
+    const isPercentTheme = String(item.type || "").trim().toLowerCase() === "prosent";
+    // Percentage-type themes (e.g. Oslo housing) are measured in
+    // percentage points; price-type themes use actual period return.
+    const delta = isPercentTheme
+      ? (periodEnd - periodStart) / 100
+      : (Number.isFinite(periodStart) && periodStart !== 0
+          ? periodEnd / periodStart - 1
+          : NaN);
 
     const participantImpact =
       participants.map(person => {
@@ -11710,7 +11728,8 @@ function monthlyThemeChanges(
     return {
       theme: item.theme,
       delta,
-      absDelta: Math.abs(delta),
+      deltaUnit: isPercentTheme ? "pp" : "%",
+      absDelta: Number.isFinite(delta) ? Math.abs(delta) : -Infinity,
       totalImpact,
       helped,
       hurt
@@ -12092,7 +12111,7 @@ function renderMonthlyReport() {
     biggestMoves.length
       ? `De største temabevegelsene har vært ${biggestMoves.map(
           item =>
-            `${item.theme} (${signedPercentValue(item.delta)})`
+            `${item.theme} (${monthlyMovementLabel(item)})`
         ).join(", ")}.`
       : "";
 
@@ -12219,7 +12238,7 @@ function renderMonthlyReport() {
                     ${item.theme}
                   </div>
                   <div class="month-move-value">
-                    ${signedPercentValue(item.delta)}
+                    ${monthlyMovementLabel(item)}
                   </div>
                 </div>
               `
